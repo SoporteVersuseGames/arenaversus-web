@@ -1032,8 +1032,6 @@
           <li><a href="#nosotros">Nosotros</a></li>
         </ul>
         <div class="nav-right">
-          <a href="login.html" id="loginBtn" style="color:var(--gray);font-size:0.82rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:8px 14px;border-radius:6px;transition:var(--transition);">Iniciar sesión</a>
-          <a href="admin.html" id="adminBtn" style="display:none;color:var(--red);font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:7px 13px;border-radius:6px;border:1px solid rgba(234,57,53,0.35);transition:var(--transition);">⚙ Admin</a>
           <a href="register.html" class="btn btn-primary">Registrarse</a>
           <button class="nav-toggle" id="navToggle" aria-label="Menú">
             <span></span><span></span><span></span>
@@ -1049,9 +1047,7 @@
     <a href="#juegos" class="mobile-link">Juegos</a>
     <a href="#clasificacion" class="mobile-link">Clasificación</a>
     <a href="#nosotros" class="mobile-link">Nosotros</a>
-    <a href="login.html" class="mobile-link">Iniciar Sesión</a>
-    <a href="admin.html" id="adminBtnMobile" class="mobile-link" style="display:none;color:var(--red);font-weight:700;">⚙ Panel Admin</a>
-    <a href="register.html" class="btn btn-primary">Crear cuenta gratis</a>
+    <a href="#registro" class="btn btn-primary">Crear cuenta gratis</a>
   </div>
 
   <!-- ══════════════════ HERO ══════════════════ -->
@@ -1084,17 +1080,17 @@
         </div>
         <div class="hero-stats fade-in fade-in-delay-4">
           <div class="stat-item">
-            <div class="stat-number"><span class="counter" data-target="30000">0</span><span>K+</span></div>
+            <div class="stat-number"><span id="heroPlayers" style="background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">—</span></div>
             <div class="stat-label">Jugadores</div>
           </div>
           <div class="stat-divider"></div>
           <div class="stat-item">
-            <div class="stat-number"><span class="counter" data-target="500">0</span><span>+</span></div>
+            <div class="stat-number"><span id="heroTournaments" style="background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">—</span></div>
             <div class="stat-label">Torneos</div>
           </div>
           <div class="stat-divider"></div>
           <div class="stat-item">
-            <div class="stat-number"><span>6</span></div>
+            <div class="stat-number"><span id="heroGames" style="background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">6</span></div>
             <div class="stat-label">Títulos Activos</div>
           </div>
         </div>
@@ -1138,79 +1134,44 @@
         <h2 class="section-title">Torneos<br /><span class="gradient-text">Destacados</span></h2>
         <p class="section-desc">Inscríbete ahora. Los cupos se agotan rápido.</p>
       </div>
-      <div class="tournaments-grid">
-        <!-- Valorant -->
-        <div class="tournament-card fade-in fade-in-delay-1">
-          <div class="tournament-cover cover-valorant">
-            <span class="cover-icon">🎯</span>
-            <span class="tournament-badge">En Curso</span>
-          </div>
+      <!-- Skeleton loader mientras carga -->
+      <div id="tournaments-skeleton" class="tournaments-grid">
+        <div class="tournament-card" style="opacity:0.4;pointer-events:none">
+          <div class="tournament-cover" style="background:rgba(255,255,255,0.04)"></div>
           <div class="tournament-body">
-            <div class="tournament-game">Valorant</div>
-            <div class="tournament-name">Copa Arena<br />Valorant Abierta</div>
-            <div class="tournament-meta">
-              <div class="meta-row"><span class="meta-icon">⚔️</span> <span>Formato:</span> <strong>Eliminación Doble</strong></div>
-              <div class="meta-row"><span class="meta-icon">👥</span> <span>Cupos:</span> <strong>14 / 16 equipos</strong></div>
-              <div class="meta-row"><span class="meta-icon">📅</span> <span>Próxima fecha:</span> <strong>22 Mar 2025</strong></div>
-            </div>
-            <div class="slots-bar"><div class="slots-fill" style="width:87%"></div></div>
-            <a href="#registro" class="btn btn-primary">Ver Torneo →</a>
+            <div style="height:10px;background:rgba(255,255,255,0.06);border-radius:4px;width:40%;margin-bottom:12px"></div>
+            <div style="height:14px;background:rgba(255,255,255,0.06);border-radius:4px;width:80%;margin-bottom:8px"></div>
+            <div style="height:14px;background:rgba(255,255,255,0.06);border-radius:4px;width:60%;margin-bottom:24px"></div>
+            <div style="height:36px;background:rgba(255,255,255,0.06);border-radius:8px"></div>
           </div>
         </div>
-        <!-- FC 26 -->
-        <div class="tournament-card fade-in fade-in-delay-2">
-          <div class="tournament-cover cover-fc26">
-            <span class="cover-icon">⚽</span>
-            <span class="tournament-badge">Inscripciones</span>
-          </div>
+        <div class="tournament-card" style="opacity:0.25;pointer-events:none">
+          <div class="tournament-cover" style="background:rgba(255,255,255,0.04)"></div>
           <div class="tournament-body">
-            <div class="tournament-game">FC 26</div>
-            <div class="tournament-name">Liga Arena<br />FC26 — Temporada 1</div>
-            <div class="tournament-meta">
-              <div class="meta-row"><span class="meta-icon">⚔️</span> <span>Formato:</span> <strong>Eliminación Simple</strong></div>
-              <div class="meta-row"><span class="meta-icon">👥</span> <span>Cupos:</span> <strong>8 / 32 jugadores</strong></div>
-              <div class="meta-row"><span class="meta-icon">📅</span> <span>Inicio:</span> <strong>1 Abr 2025</strong></div>
-            </div>
-            <div class="slots-bar"><div class="slots-fill" style="width:25%"></div></div>
-            <a href="#registro" class="btn btn-primary">Ver Torneo →</a>
+            <div style="height:10px;background:rgba(255,255,255,0.06);border-radius:4px;width:40%;margin-bottom:12px"></div>
+            <div style="height:14px;background:rgba(255,255,255,0.06);border-radius:4px;width:80%;margin-bottom:8px"></div>
+            <div style="height:14px;background:rgba(255,255,255,0.06);border-radius:4px;width:60%;margin-bottom:24px"></div>
+            <div style="height:36px;background:rgba(255,255,255,0.06);border-radius:8px"></div>
           </div>
         </div>
-        <!-- LOL -->
-        <div class="tournament-card fade-in fade-in-delay-3">
-          <div class="tournament-cover cover-lol">
-            <span class="cover-icon">⚔️</span>
-            <span class="tournament-badge">Próximamente</span>
-          </div>
+        <div class="tournament-card" style="opacity:0.12;pointer-events:none">
+          <div class="tournament-cover" style="background:rgba(255,255,255,0.04)"></div>
           <div class="tournament-body">
-            <div class="tournament-game">League of Legends</div>
-            <div class="tournament-name">Arena LoL<br />Cup — Invitacional</div>
-            <div class="tournament-meta">
-              <div class="meta-row"><span class="meta-icon">⚔️</span> <span>Formato:</span> <strong>Grupos + Playoffs</strong></div>
-              <div class="meta-row"><span class="meta-icon">👥</span> <span>Cupos:</span> <strong>0 / 8 equipos</strong></div>
-              <div class="meta-row"><span class="meta-icon">📅</span> <span>Apertura:</span> <strong>15 Abr 2025</strong></div>
-            </div>
-            <div class="slots-bar"><div class="slots-fill" style="width:5%"></div></div>
-            <a href="#registro" class="btn btn-outline">Notificarme</a>
+            <div style="height:10px;background:rgba(255,255,255,0.06);border-radius:4px;width:40%;margin-bottom:12px"></div>
+            <div style="height:14px;background:rgba(255,255,255,0.06);border-radius:4px;width:80%;margin-bottom:8px"></div>
+            <div style="height:14px;background:rgba(255,255,255,0.06);border-radius:4px;width:60%;margin-bottom:24px"></div>
+            <div style="height:36px;background:rgba(255,255,255,0.06);border-radius:8px"></div>
           </div>
         </div>
-        <!-- Fortnite -->
-        <div class="tournament-card fade-in fade-in-delay-4">
-          <div class="tournament-cover cover-fortnite">
-            <span class="cover-icon">🔫</span>
-            <span class="tournament-badge">Inscripciones</span>
-          </div>
-          <div class="tournament-body">
-            <div class="tournament-game">Fortnite</div>
-            <div class="tournament-name">Fortnite<br />Arena Solos</div>
-            <div class="tournament-meta">
-              <div class="meta-row"><span class="meta-icon">⚔️</span> <span>Formato:</span> <strong>Puntos / Kill Race</strong></div>
-              <div class="meta-row"><span class="meta-icon">👥</span> <span>Cupos:</span> <strong>19 / 64 jugadores</strong></div>
-              <div class="meta-row"><span class="meta-icon">📅</span> <span>Inicio:</span> <strong>5 Abr 2025</strong></div>
-            </div>
-            <div class="slots-bar"><div class="slots-fill" style="width:30%"></div></div>
-            <a href="#registro" class="btn btn-primary">Ver Torneo →</a>
-          </div>
-        </div>
+      </div>
+      <!-- Contenedor dinámico desde Supabase -->
+      <div id="tournaments-dynamic" class="tournaments-grid" style="display:none"></div>
+      <!-- Estado vacío -->
+      <div id="tournaments-empty" style="display:none;text-align:center;padding:60px 20px">
+        <div style="font-size:3rem;margin-bottom:16px;opacity:0.4">🏆</div>
+        <p style="color:var(--gray2);font-size:1rem;margin-bottom:8px">Próximamente nuevos torneos</p>
+        <p style="color:rgba(199,199,197,0.5);font-size:0.85rem">Regístrate para ser el primero en enterarte</p>
+        <a href="register.html" class="btn btn-primary" style="margin-top:24px">Registrarme ahora</a>
       </div>
     </div>
   </section>
@@ -1302,12 +1263,12 @@
     <div class="container">
       <div class="stats-grid fade-in">
         <div class="stats-item">
-          <div class="stats-number"><span class="counter-stat accent" data-target="30">0</span><span class="accent">K+</span></div>
+          <div class="stats-number"><span id="statPlayers" class="accent">—</span></div>
           <div class="stats-label">Jugadores Registrados</div>
         </div>
         <div class="stats-item">
-          <div class="stats-number"><span class="counter-stat accent" data-target="500">0</span><span class="accent">+</span></div>
-          <div class="stats-label">Torneos Jugados</div>
+          <div class="stats-number"><span id="statTournaments" class="accent">—</span></div>
+          <div class="stats-label">Torneos Realizados</div>
         </div>
         <div class="stats-item">
           <div class="stats-number"><span class="accent">$0</span></div>
@@ -1518,41 +1479,201 @@
     });
   </script>
 
-  <!-- ── ADMIN LINK (solo visible para admins) ── -->
+  <!-- ══════════ SUPABASE — DATOS DINÁMICOS ══════════ -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
-    (async () => {
-      try {
-        const sb = supabase.createClient(
-          'https://ambmqayzxqylztbylnkq.supabase.co',
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtYm1xYXl6eHF5bHp0YnlsbmtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTE4NjMsImV4cCI6MjA4OTI2Nzg2M30.GC8ZveqhZ_SYb5gfV2sN_sTdPQuud4JSuIZuZ5h-mAU'
-        );
+  (async () => {
+    const sb = supabase.createClient(
+      'https://ambmqayzxqylztbylnkq.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtYm1xYXl6eHF5bHp0YnlsbmtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTE4NjMsImV4cCI6MjA4OTI2Nzg2M30.GC8ZveqhZ_SYb5gfV2sN_sTdPQuud4JSuIZuZ5h-mAU'
+    );
 
+    // ── Helpers ──────────────────────────────────────────
+    const GAME_ICONS = {
+      'Valorant':'🎯','FC26':'⚽','League of Legends':'⚔️','Fortnite':'🔫',
+      'Just Dance':'💃','Formula 1':'🏎️','Free Fire':'🔥','PUBG Mobile':'📱',
+      'Call of Duty':'🎖️','Rocket League':'🚀'
+    };
+    const GAME_COVERS = {
+      'Valorant':    'background:linear-gradient(135deg,#ff4655 0%,#1a0a0a 100%)',
+      'FC26':        'background:linear-gradient(135deg,#00d2ff 0%,#002244 100%)',
+      'League of Legends':'background:linear-gradient(135deg,#c89b3c 0%,#0a1628 100%)',
+      'Fortnite':    'background:linear-gradient(135deg,#7b2ff7 0%,#0d0d1a 100%)',
+      'Just Dance':  'background:linear-gradient(135deg,#ff6ec7 0%,#1a0a2a 100%)',
+      'Formula 1':   'background:linear-gradient(135deg,#e8002d 0%,#1a0a0a 100%)',
+      'Free Fire':   'background:linear-gradient(135deg,#ff8c00 0%,#1a0a00 100%)',
+      'PUBG Mobile': 'background:linear-gradient(135deg,#f5a623 0%,#1a1000 100%)',
+      'Call of Duty':'background:linear-gradient(135deg,#2d6a4f 0%,#081c15 100%)',
+      'Rocket League':'background:linear-gradient(135deg,#00b4d8 0%,#03045e 100%)'
+    };
+    const STATUS_LABELS = {
+      upcoming:'Próximamente', open:'Inscripciones',
+      in_progress:'En Curso',  finished:'Finalizado', cancelled:'Cancelado'
+    };
+    const FORMAT_LABELS = {
+      single_elimination:'Eliminación Simple', double_elimination:'Eliminación Doble',
+      round_robin:'Round Robin', swiss:'Sistema Suizo', groups_playoffs:'Grupos + Playoffs'
+    };
+
+    function gameIcon(g)  { return GAME_ICONS[g]   || '🎮'; }
+    function gameCover(g) { return GAME_COVERS[g]  || 'background:linear-gradient(135deg,#ea3935 0%,#1a0a0a 100%)'; }
+    function statusLabel(s){ return STATUS_LABELS[s] || s; }
+    function formatLabel(f){ return FORMAT_LABELS[f] || f; }
+    function fmtDate(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' });
+    }
+    function animateNum(el, target) {
+      const dur = 1600;
+      const start = performance.now();
+      function tick(now) {
+        const p = Math.min((now - start) / dur, 1);
+        const e = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.floor(e * target) + (p < 1 ? '' : '');
+        if (p < 1) requestAnimationFrame(tick);
+        else el.textContent = target + '+';
+      }
+      requestAnimationFrame(tick);
+    }
+    function slotsPct(t) {
+      if (!t.max_players || !t.current_players) return 0;
+      return Math.min(100, Math.round((t.current_players / t.max_players) * 100));
+    }
+
+    // ── Cargar stats (jugadores y torneos) ───────────────
+    async function loadStats() {
+      try {
+        const [{ count: players }, { count: tournaments }] = await Promise.all([
+          sb.from('profiles').select('*', { count:'exact', head:true }),
+          sb.from('tournaments').select('*', { count:'exact', head:true })
+            .neq('status','cancelled')
+        ]);
+
+        const p = players  || 0;
+        const t = tournaments || 0;
+
+        // Hero stats
+        const heroP = document.getElementById('heroPlayers');
+        const heroT = document.getElementById('heroTournaments');
+        if (heroP) animateNum(heroP, p);
+        if (heroT) animateNum(heroT, t);
+
+        // Stats section
+        const statP = document.getElementById('statPlayers');
+        const statT = document.getElementById('statTournaments');
+        if (statP) animateNum(statP, p);
+        if (statT) animateNum(statT, t);
+
+      } catch(e) {
+        // Si falla, mostrar valores por defecto
+        ['heroPlayers','heroTournaments','statPlayers','statTournaments'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = '0+';
+        });
+      }
+    }
+
+    // ── Cargar torneos dinámicos ─────────────────────────
+    async function loadTournaments() {
+      try {
+        const { data: torneos, error } = await sb
+          .from('tournaments')
+          .select('*')
+          .neq('status', 'cancelled')
+          .order('created_at', { ascending: false });
+
+        const skeleton  = document.getElementById('tournaments-skeleton');
+        const dynamic   = document.getElementById('tournaments-dynamic');
+        const emptyState= document.getElementById('tournaments-empty');
+
+        if (!torneos || torneos.length === 0 || error) {
+          if (skeleton)   skeleton.style.display   = 'none';
+          if (emptyState) emptyState.style.display = 'block';
+          return;
+        }
+
+        const html = torneos.map((t, i) => {
+          const delay = ['fade-in-delay-1','fade-in-delay-2','fade-in-delay-3','fade-in-delay-4'][ i % 4 ];
+          const pct   = slotsPct(t);
+          const icon  = gameIcon(t.game);
+          const cover = gameCover(t.game);
+          const badge = statusLabel(t.status);
+          const fmt   = formatLabel(t.format);
+          const date  = fmtDate(t.start_date);
+          const cupos = t.max_players
+            ? `${t.current_players || 0} / ${t.max_players}`
+            : '—';
+          const btnClass = t.status === 'upcoming' ? 'btn-outline' : 'btn-primary';
+          const btnText  = t.status === 'upcoming' ? 'Notificarme' :
+                           t.status === 'finished'  ? 'Ver Resultados →' : 'Ver Torneo →';
+          const prize = t.prize_description
+            ? `<div class="meta-row"><span class="meta-icon">🏅</span> <span>Premio:</span> <strong>${t.prize_description}</strong></div>`
+            : '';
+
+          return \`
+            <div class="tournament-card fade-in \${delay}">
+              <div class="tournament-cover" style="\${cover}">
+                <span class="cover-icon">\${icon}</span>
+                <span class="tournament-badge">\${badge}</span>
+              </div>
+              <div class="tournament-body">
+                <div class="tournament-game">\${t.game}</div>
+                <div class="tournament-name">\${t.title}</div>
+                <div class="tournament-meta">
+                  <div class="meta-row"><span class="meta-icon">⚔️</span> <span>Formato:</span> <strong>\${fmt}</strong></div>
+                  <div class="meta-row"><span class="meta-icon">👥</span> <span>Cupos:</span> <strong>\${cupos}</strong></div>
+                  <div class="meta-row"><span class="meta-icon">📅</span> <span>Inicio:</span> <strong>\${date}</strong></div>
+                  \${prize}
+                </div>
+                <div class="slots-bar"><div class="slots-fill" style="width:\${pct}%"></div></div>
+                <a href="torneos.html" class="btn \${btnClass}">\${btnText}</a>
+              </div>
+            </div>
+          \`;
+        }).join('');
+
+        if (skeleton)   skeleton.style.display  = 'none';
+        if (dynamic)  { dynamic.innerHTML = html; dynamic.style.display = 'grid'; }
+
+        // Activar fade-in para las cards recién insertadas
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('#tournaments-dynamic .fade-in').forEach(el => observer.observe(el));
+
+      } catch(e) {
+        const skeleton = document.getElementById('tournaments-skeleton');
+        const empty    = document.getElementById('tournaments-empty');
+        if (skeleton) skeleton.style.display = 'none';
+        if (empty)    empty.style.display    = 'block';
+      }
+    }
+
+    // ── Admin link (solo visible para admins) ────────────
+    async function checkAdmin() {
+      try {
         const { data: { session } } = await sb.auth.getSession();
         if (!session) return;
-
-        const email = session.user.email;
-
-        // Verificar si es admin en Supabase
-        const { data: adminRow } = await sb
-          .from('admins')
-          .select('email')
-          .eq('email', email)
-          .maybeSingle();
-
+        const { data: adminRow } = await sb.from('admins').select('email')
+          .eq('email', session.user.email).maybeSingle();
         if (!adminRow) return;
-
-        // Mostrar botón admin y ocultar login
         const adminBtn       = document.getElementById('adminBtn');
         const adminBtnMobile = document.getElementById('adminBtnMobile');
         const loginBtn       = document.getElementById('loginBtn');
-
         if (adminBtn)       adminBtn.style.display       = 'inline-flex';
         if (adminBtnMobile) adminBtnMobile.style.display = 'block';
         if (loginBtn)       loginBtn.style.display       = 'none';
+      } catch(e) {}
+    }
 
-      } catch(e) { /* silencioso si hay error */ }
-    })();
+    // ── Ejecutar todo en paralelo ────────────────────────
+    Promise.all([loadStats(), loadTournaments(), checkAdmin()]);
+  })();
   </script>
 </body>
 </html>
