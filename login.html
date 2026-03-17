@@ -235,7 +235,7 @@
   // ══════════════════════════════════════════════
   const SUPABASE_URL      = 'https://ambmqayzxqylztbylnkq.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtYm1xYXl6eHF5bHp0YnlsbmtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTE4NjMsImV4cCI6MjA4OTI2Nzg2M30.GC8ZveqhZ_SYb5gfV2sN_sTdPQuud4JSuIZuZ5h-mAU';
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true } });
 
   const errGlobal = document.getElementById('errGlobal');
   const errMsg    = document.getElementById('errMsg');
@@ -334,7 +334,12 @@
       }
 
       showOk('¡Bienvenido de vuelta! Redirigiendo...');
-      setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+      // Verificar si es admin antes de redirigir
+      const { data: adminRow } = await sb.from('admins')
+        .select('email').eq('email', data.user.email).maybeSingle();
+      setTimeout(() => {
+        window.location.href = adminRow ? 'admin.html' : 'dashboard.html';
+      }, 1000);
 
     } catch (err) {
       console.error('Login error:', err);
@@ -359,10 +364,15 @@
     }
   });
 
-  // Si ya está logueado → redirigir directo
-  supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY).auth.getSession().then(({ data: { session } }) => {
-    if (session) window.location.href = 'dashboard.html';
-  });
+  // Si ya está logueado → redirigir según rol
+  supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true } })
+    .auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return;
+      const sb2 = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true } });
+      const { data: adminRow } = await sb2.from('admins')
+        .select('email').eq('email', session.user.email).maybeSingle();
+      window.location.href = adminRow ? 'admin.html' : 'dashboard.html';
+    });
 </script>
 </body>
 </html>
