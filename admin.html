@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — Arena Versus</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black:      #111111;
+      --black2:     #1c1c1c;
+      --black3:     #242424;
+      --black4:     #2e2e2e;
+      --red:        #ea3935;
+      --orange:     #ec622b;
+      --gradient:   linear-gradient(135deg, #ea3935 0%, #ec622b 100%);
+      --gray:       #c7c7c5;
+      --gray2:      #888886;
+      --light:      #eaeaea;
+      --white:      #ffffff;
+      --green:      #22c55e;
+      --yellow:     #eab308;
+      --blue:       #3b82f6;
+      --font:       'Inter Tight', sans-serif;
+      --radius:     8px;
+      --radius-lg:  12px;
+      --transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+      --border:     1px solid rgba(255,255,255,0.07);
+      --border-red: 1px solid rgba(234,57,53,0.3);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--black);
+      color: var(--gray);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+    input, select, textarea, button { font-family: var(--font); }
+
+    /* ── GRAIN OVERLAY ── */
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:9999;
+      opacity:0.03;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size:200px 200px;
+    }
+
+    /* ── LAYOUT ── */
+    .layout { display:flex; min-height:100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--black2);
+      border-right: var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+      transition: var(--transition);
+    }
+    .sidebar-logo {
+      padding: 24px 20px;
+      border-bottom: var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sidebar-logo svg { flex-shrink: 0; }
+    .sidebar-logo-text { font-size: 0.9rem; font-weight: 900; color: var(--white); letter-spacing: 0.1em; text-transform: uppercase; }
+    .sidebar-logo-sub { font-size: 0.65rem; color: var(--red); font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 1px; }
+
+    .sidebar-nav { padding: 16px 12px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      font-size: 0.83rem; font-weight: 600;
+      color: var(--gray2);
+      cursor: pointer;
+      transition: var(--transition);
+      border: 1px solid transparent;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--light); }
+    .nav-item.active { background: rgba(234,57,53,0.12); color: var(--white); border-color: rgba(234,57,53,0.25); }
+    .nav-item svg { flex-shrink: 0; opacity: 0.7; }
+    .nav-item.active svg { opacity: 1; }
+    .nav-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 8px 0; }
+    .nav-section-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray2); padding: 4px 12px 8px; }
+
+    .sidebar-footer {
+      padding: 16px 12px;
+      border-top: var(--border);
+    }
+    .admin-badge {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      background: rgba(234,57,53,0.08);
+      border: var(--border-red);
+      border-radius: var(--radius);
+    }
+    .admin-avatar {
+      width: 32px; height: 32px;
+      background: var(--gradient);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 900; color: #fff;
+      flex-shrink: 0;
+    }
+    .admin-info { flex: 1; min-width: 0; }
+    .admin-name { font-size: 0.78rem; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .admin-role { font-size: 0.65rem; color: var(--red); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .logout-btn { background: none; border: none; cursor: pointer; color: var(--gray2); padding: 4px; border-radius: 4px; transition: var(--transition); }
+    .logout-btn:hover { color: var(--red); }
+
+    /* ── MAIN ── */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      background: rgba(17,17,17,0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: var(--border);
+      padding: 0 32px;
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-title { font-size: 1.05rem; font-weight: 800; color: var(--white); letter-spacing: 0.02em; }
+    .topbar-title span { color: var(--red); }
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+    .topbar-date { font-size: 0.78rem; color: var(--gray2); }
+
+    /* ── CONTENT ── */
+    .content { padding: 32px; flex: 1; }
+
+    /* ── PANELS ── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── STATS ROW ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--black2);
+      border: var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px 22px;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+    .stat-card:hover { border-color: rgba(234,57,53,0.25); }
+    .stat-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--gradient); opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .stat-card:hover::before { opacity: 1; }
+    .stat-card-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray2); margin-bottom: 8px; }
+    .stat-card-number { font-size: 2rem; font-weight: 900; color: var(--white); line-height: 1; letter-spacing: -0.02em; }
+    .stat-card-number.red { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-card-sub { font-size: 0.75rem; color: var(--gray2); margin-top: 6px; }
+    .stat-card-icon { position: absolute; top: 16px; right: 18px; font-size: 1.4rem; opacity: 0.2; }
+
+    /* ── SECTION HEADER ── */
+    .section-hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .section-hdr h2 { font-size: 1rem; font-weight: 800; color: var(--white); letter-spacing: 0.02em; }
+    .section-hdr p { font-size: 0.78rem; color: var(--gray2); margin-top: 2px; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 20px;
+      border-radius: var(--radius); border: none;
+      font-family: var(--font); font-weight: 700; font-size: 0.8rem;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      cursor: pointer; transition: var(--transition);
+    }
+    .btn-primary { background: var(--gradient); color: #fff; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(234,57,53,0.4); }
+    .btn-ghost { background: rgba(255,255,255,0.05); color: var(--gray); border: var(--border); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.08); color: var(--white); }
+    .btn-danger { background: rgba(234,57,53,0.12); color: var(--red); border: var(--border-red); }
+    .btn-danger:hover { background: rgba(234,57,53,0.2); }
+    .btn-success { background: rgba(34,197,94,0.12); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+    .btn-success:hover { background: rgba(34,197,94,0.2); }
+    .btn-sm { padding: 6px 12px; font-size: 0.72rem; }
+    .btn-icon { padding: 8px; width: 34px; height: 34px; justify-content: center; }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      background: var(--black2);
+      border: var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .table-filters {
+      padding: 16px 20px;
+      border-bottom: var(--border);
+      display: flex; align-items: center; gap: 12px;
+      flex-wrap: wrap;
+    }
+    .search-input {
+      flex: 1; min-width: 200px;
+      background: var(--black3);
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 8px 14px;
+      color: var(--light);
+      font-size: 0.83rem;
+      outline: none;
+      transition: var(--transition);
+    }
+    .search-input:focus { border-color: rgba(234,57,53,0.4); }
+    .filter-select {
+      background: var(--black3);
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      color: var(--gray);
+      font-size: 0.8rem;
+      outline: none;
+      cursor: pointer;
+    }
+    .filter-select:focus { border-color: rgba(234,57,53,0.4); }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gray2);
+      border-bottom: var(--border);
+      background: rgba(255,255,255,0.02);
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: var(--transition);
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.02); }
+    tbody td {
+      padding: 14px 16px;
+      font-size: 0.83rem;
+      color: var(--gray);
+      vertical-align: middle;
+    }
+    .td-name { color: var(--white); font-weight: 700; max-width: 200px; }
+    .td-name small { display: block; color: var(--gray2); font-weight: 400; font-size: 0.75rem; margin-top: 2px; }
+    .td-actions { display: flex; gap: 6px; justify-content: flex-end; }
+    .empty-state {
+      padding: 60px 20px;
+      text-align: center;
+    }
+    .empty-state-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; }
+    .empty-state p { color: var(--gray2); font-size: 0.88rem; }
+
+    /* ── BADGES ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .badge::before { content:''; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+    .badge-upcoming  { background:rgba(59,130,246,0.12); color:#60a5fa; border:1px solid rgba(59,130,246,0.25); }
+    .badge-upcoming::before  { background:#60a5fa; }
+    .badge-open      { background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.25); }
+    .badge-open::before      { background:#4ade80; animation: blink 1.5s infinite; }
+    .badge-in_progress { background:rgba(234,57,53,0.12); color:#f87171; border:1px solid rgba(234,57,53,0.25); }
+    .badge-in_progress::before { background:#f87171; animation: blink 1s infinite; }
+    .badge-finished  { background:rgba(136,136,134,0.15); color:var(--gray2); border:1px solid rgba(255,255,255,0.08); }
+    .badge-finished::before  { background:var(--gray2); }
+    .badge-cancelled { background:rgba(234,57,53,0.08); color:rgba(234,57,53,0.6); border:1px solid rgba(234,57,53,0.15); }
+    .badge-cancelled::before { background:rgba(234,57,53,0.5); }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    /* ── GAME ICON ── */
+    .game-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.78rem; font-weight: 600; color: var(--light);
+    }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: none; align-items: flex-start; justify-content: center;
+      padding: 40px 20px;
+      overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--black2);
+      border: var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 720px;
+      padding: 0;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+      animation: modal-in 0.25s cubic-bezier(0.34,1.56,0.64,1);
+      margin: auto;
+    }
+    @keyframes modal-in { from { opacity:0; transform:scale(0.95) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }
+    .modal-header {
+      padding: 24px 28px 20px;
+      border-bottom: var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-title { font-size: 1.05rem; font-weight: 900; color: var(--white); letter-spacing: 0.02em; }
+    .modal-title span { color: var(--red); }
+    .modal-close { background:none; border:none; cursor:pointer; color:var(--gray2); padding:6px; border-radius:6px; transition:var(--transition); }
+    .modal-close:hover { color:var(--red); background:rgba(234,57,53,0.08); }
+    .modal-body { padding: 28px; }
+    .modal-footer { padding: 20px 28px 24px; border-top: var(--border); display:flex; justify-content:flex-end; gap:12px; }
+
+    /* ── FORM ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .form-full { grid-column: 1 / -1; }
+    .form-group { display: flex; flex-direction: column; gap: 7px; }
+    .form-label {
+      font-size: 0.73rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--gray2);
+    }
+    .form-label span { color: var(--red); margin-left: 2px; }
+    .form-input, .form-select, .form-textarea {
+      background: var(--black3);
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      color: var(--light);
+      font-size: 0.88rem;
+      outline: none;
+      transition: var(--transition);
+      width: 100%;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: rgba(234,57,53,0.5);
+      background: var(--black4);
+      box-shadow: 0 0 0 3px rgba(234,57,53,0.08);
+    }
+    .form-input::placeholder { color: rgba(199,199,197,0.3); }
+    .form-select { cursor: pointer; }
+    .form-select option { background: var(--black2); }
+    .form-textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+    .form-hint { font-size: 0.72rem; color: var(--gray2); margin-top: -3px; }
+    .form-section-title {
+      font-size: 0.72rem; font-weight: 800; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--red);
+      padding-bottom: 10px; border-bottom: var(--border-red);
+      margin-bottom: 4px; grid-column: 1 / -1;
+    }
+
+    /* ── TOAST ── */
+    .toast-container { position:fixed; bottom:28px; right:28px; z-index:9000; display:flex; flex-direction:column; gap:8px; }
+    .toast {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--black2); border: var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 18px;
+      min-width: 280px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      animation: toast-in 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes toast-in { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+    .toast.success { border-left: 3px solid var(--green); }
+    .toast.error   { border-left: 3px solid var(--red); }
+    .toast-icon { font-size: 1.1rem; }
+    .toast-msg { font-size: 0.83rem; font-weight: 600; color: var(--white); }
+
+    /* ── CONFIRM MODAL ── */
+    .confirm-modal {
+      background: var(--black2); border: var(--border);
+      border-radius: var(--radius-lg); padding: 28px;
+      max-width: 400px; width: 100%; margin: auto;
+      animation: modal-in 0.2s ease;
+    }
+    .confirm-title { font-size: 1rem; font-weight: 800; color: var(--white); margin-bottom: 10px; }
+    .confirm-desc  { font-size: 0.85rem; color: var(--gray); line-height: 1.6; margin-bottom: 24px; }
+    .confirm-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* ── LOADING ── */
+    .loading {
+      display: flex; align-items: center; justify-content: center;
+      padding: 60px; gap: 12px; color: var(--gray2); font-size: 0.88rem;
+    }
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid rgba(234,57,53,0.2);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── PROGRESS BAR ── */
+    .slots-bar { background:rgba(255,255,255,0.06); border-radius:4px; height:4px; overflow:hidden; width:80px; display:inline-block; vertical-align:middle; margin-right:6px; }
+    .slots-fill { height:100%; background:var(--gradient); border-radius:4px; }
+
+    /* ── ACCESS DENIED ── */
+    #access-denied {
+      display: none;
+      position: fixed; inset: 0;
+      background: var(--black);
+      z-index: 9999;
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 20px; text-align: center;
+      padding: 40px;
+    }
+    #access-denied.show { display: flex; }
+    #access-denied svg { opacity: 0.3; }
+    #access-denied h2 { font-size: 1.4rem; font-weight: 900; color: var(--white); }
+    #access-denied p { color: var(--gray2); max-width: 320px; line-height: 1.6; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .form-grid, .form-grid.cols-3 { grid-template-columns: 1fr; }
+      .form-full { grid-column: 1; }
+      .content { padding: 20px; }
+    }
+    @media (max-width: 640px) {
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .topbar { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ACCESS DENIED -->
+<div id="access-denied">
+  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ea3935" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+  <h2>Acceso Denegado</h2>
+  <p>Esta área está restringida a administradores de Arena Versus.</p>
+  <a href="login.html" style="background:var(--gradient);color:#fff;padding:12px 28px;border-radius:8px;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;">Ir al Login</a>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmOverlay">
+  <div class="confirm-modal">
+    <div class="confirm-title" id="confirmTitle">¿Estás seguro?</div>
+    <div class="confirm-desc" id="confirmDesc">Esta acción no se puede deshacer.</div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn btn-danger btn-sm" id="confirmOk">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOURNAMENT MODAL -->
+<div class="modal-overlay" id="tournamentModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Nuevo <span>Torneo</span></div>
+      <button class="modal-close" onclick="closeModal()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="tournamentForm" class="form-grid">
+
+        <!-- Información básica -->
+        <div class="form-section-title">Información básica</div>
+
+        <div class="form-group form-full">
+          <label class="form-label">Nombre del torneo <span>*</span></label>
+          <input class="form-input" id="f-title" type="text" placeholder="Ej: Copa Arena Valorant — Temporada 2" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Juego <span>*</span></label>
+          <select class="form-select" id="f-game" required>
+            <option value="">Selecciona el juego</option>
+            <option value="Valorant">🎯 Valorant</option>
+            <option value="FC26">⚽ FC 26</option>
+            <option value="League of Legends">⚔️ League of Legends</option>
+            <option value="Fortnite">🔫 Fortnite</option>
+            <option value="Just Dance">💃 Just Dance</option>
+            <option value="Formula 1">🏎️ Formula 1</option>
+            <option value="Free Fire">🔥 Free Fire</option>
+            <option value="PUBG Mobile">📱 PUBG Mobile</option>
+            <option value="Call of Duty">🎖️ Call of Duty</option>
+            <option value="Rocket League">🚀 Rocket League</option>
+            <option value="Otro">🎮 Otro</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Plataforma <span>*</span></label>
+          <select class="form-select" id="f-platform">
+            <option value="PC">💻 PC</option>
+            <option value="Console">🎮 Consola (PS5/Xbox)</option>
+            <option value="Mobile">📱 Mobile</option>
+            <option value="Any">🌐 Multiplataforma</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Región</label>
+          <select class="form-select" id="f-region">
+            <option value="LATAM">🌎 LATAM (toda la región)</option>
+            <option value="Colombia">🇨🇴 Colombia</option>
+            <option value="México">🇲🇽 México</option>
+            <option value="Argentina">🇦🇷 Argentina</option>
+            <option value="Chile">🇨🇱 Chile</option>
+            <option value="Perú">🇵🇪 Perú</option>
+            <option value="Global">🌍 Global</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Estado inicial</label>
+          <select class="form-select" id="f-status">
+            <option value="upcoming">🔵 Próximamente</option>
+            <option value="open">🟢 Inscripciones abiertas</option>
+            <option value="in_progress">🔴 En curso</option>
+            <option value="finished">⚫ Finalizado</option>
+          </select>
+        </div>
+
+        <!-- Competencia -->
+        <div class="form-section-title">Formato de competencia</div>
+
+        <div class="form-group">
+          <label class="form-label">Formato <span>*</span></label>
+          <select class="form-select" id="f-format">
+            <option value="single_elimination">Eliminación simple</option>
+            <option value="double_elimination">Eliminación doble</option>
+            <option value="round_robin">Round Robin</option>
+            <option value="swiss">Sistema Suizo</option>
+            <option value="groups_playoffs">Grupos + Playoffs</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tipo de participante</label>
+          <select class="form-select" id="f-participant-type">
+            <option value="individual">👤 Individual (1v1)</option>
+            <option value="duo">👥 Dúo (2v2)</option>
+            <option value="team">🏆 Equipo</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Jugadores por equipo</label>
+          <select class="form-select" id="f-team-size">
+            <option value="1">1v1</option>
+            <option value="2">2v2</option>
+            <option value="3">3v3</option>
+            <option value="4">4v4</option>
+            <option value="5">5v5</option>
+            <option value="6">6v6</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Formato de serie</label>
+          <select class="form-select" id="f-series">
+            <option value="BO1">BO1 — Al mejor de 1</option>
+            <option value="BO3">BO3 — Al mejor de 3</option>
+            <option value="BO5">BO5 — Al mejor de 5</option>
+            <option value="BO7">BO7 — Al mejor de 7</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Máximo de participantes <span>*</span></label>
+          <input class="form-input" id="f-max-players" type="number" min="2" max="512" value="16" placeholder="16" required />
+          <span class="form-hint">Equipos o jugadores según el tipo</span>
+        </div>
+
+        <!-- Fechas -->
+        <div class="form-section-title">Fechas</div>
+
+        <div class="form-group">
+          <label class="form-label">Cierre de inscripciones</label>
+          <input class="form-input" id="f-reg-end" type="datetime-local" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fecha de inicio <span>*</span></label>
+          <input class="form-input" id="f-start-date" type="datetime-local" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fecha de fin estimada</label>
+          <input class="form-input" id="f-end-date" type="datetime-local" />
+        </div>
+
+        <!-- Premios -->
+        <div class="form-section-title">Premio y Sponsors</div>
+
+        <div class="form-group form-full">
+          <label class="form-label">Premio / Recompensa</label>
+          <input class="form-input" id="f-prize" type="text" placeholder="Ej: $50.000 COP + Medalla Digital + Reputación en ranking" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Patrocinador / Sponsor</label>
+          <input class="form-input" id="f-sponsor" type="text" placeholder="Nombre del sponsor (opcional)" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">URL del Sponsor</label>
+          <input class="form-input" id="f-sponsor-url" type="url" placeholder="https://..." />
+        </div>
+
+        <div class="form-group form-full">
+          <label class="form-label">URL de imagen de portada</label>
+          <input class="form-input" id="f-cover" type="url" placeholder="https://... (imagen para la tarjeta del torneo)" />
+          <span class="form-hint">Recomendado: 800×400px. Puedes usar Imgur, Cloudinary o similar.</span>
+        </div>
+
+        <!-- Descripción -->
+        <div class="form-section-title">Descripción y Reglas</div>
+
+        <div class="form-group form-full">
+          <label class="form-label">Descripción del torneo</label>
+          <textarea class="form-textarea" id="f-description" placeholder="Describe el torneo, requisitos de participación, reglas especiales..."></textarea>
+        </div>
+
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="saveBtn" onclick="saveTournament()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Guardar torneo
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <svg width="32" height="32" viewBox="0 0 38 38" fill="none">
+        <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ea3935"/><stop offset="100%" stop-color="#ec622b"/></linearGradient></defs>
+        <path d="M19 2L4 9v10c0 8.5 6.4 16.4 15 18.5C28.6 35.4 35 27.5 35 19V9L19 2z" fill="url(#sg)" opacity="0.15"/>
+        <path d="M19 2L4 9v10c0 8.5 6.4 16.4 15 18.5C28.6 35.4 35 27.5 35 19V9L19 2z" fill="none" stroke="url(#sg)" stroke-width="1.5"/>
+        <path d="M10 26 L15 12 L19 22 M12.5 21 L17.5 21" stroke="url(#sg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M20 12 L24 22 L28 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
+      </svg>
+      <div>
+        <div class="sidebar-logo-text">Arena Versus</div>
+        <div class="sidebar-logo-sub">Admin Panel</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <div class="nav-item active" onclick="showPanel('dashboard')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" onclick="showPanel('tournaments')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M17 3H7l-2 7h14l-2-7zM5 10c0 4 3 7 7 7s7-3 7-7"/></svg>
+        Torneos
+        <span id="tournaments-count" style="margin-left:auto;background:rgba(234,57,53,0.15);color:var(--red);font-size:0.68rem;font-weight:700;padding:1px 7px;border-radius:100px;">0</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('players')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Jugadores
+        <span id="players-count" style="margin-left:auto;background:rgba(59,130,246,0.15);color:#60a5fa;font-size:0.68rem;font-weight:700;padding:1px 7px;border-radius:100px;">0</span>
+      </div>
+      <div class="nav-divider"></div>
+      <div class="nav-section-label">Configuración</div>
+      <a class="nav-item" href="index.html" target="_blank">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Ver Landing Page
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="admin-badge">
+        <div class="admin-avatar" id="adminAvatar">A</div>
+        <div class="admin-info">
+          <div class="admin-name" id="adminEmail">—</div>
+          <div class="admin-role">Administrador</div>
+        </div>
+        <button class="logout-btn" onclick="logout()" title="Cerrar sesión">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">Panel de <span>Administración</span></div>
+      <div class="topbar-actions">
+        <span class="topbar-date" id="topbarDate"></span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── DASHBOARD PANEL ── -->
+      <div class="panel active" id="panel-dashboard">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-card-icon">🏆</div>
+            <div class="stat-card-label">Total Torneos</div>
+            <div class="stat-card-number red" id="stat-total">—</div>
+            <div class="stat-card-sub">en la plataforma</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon">🟢</div>
+            <div class="stat-card-label">Activos / Abiertos</div>
+            <div class="stat-card-number" id="stat-active">—</div>
+            <div class="stat-card-sub">en curso o inscripciones</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon">👥</div>
+            <div class="stat-card-label">Jugadores registrados</div>
+            <div class="stat-card-number" id="stat-players">—</div>
+            <div class="stat-card-sub">perfiles creados</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon">📋</div>
+            <div class="stat-card-label">Inscripciones totales</div>
+            <div class="stat-card-number" id="stat-registrations">—</div>
+            <div class="stat-card-sub">en todos los torneos</div>
+          </div>
+        </div>
+
+        <div class="section-hdr">
+          <div>
+            <h2>Torneos recientes</h2>
+            <p>Últimos creados o modificados</p>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openCreateModal()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nuevo Torneo
+          </button>
+        </div>
+        <div class="table-wrap">
+          <div id="dashboard-table-loading" class="loading"><div class="spinner"></div> Cargando...</div>
+          <div id="dashboard-table" style="display:none;">
+            <table>
+              <thead><tr>
+                <th>Torneo</th><th>Juego</th><th>Estado</th><th>Cupos</th><th>Inicio</th><th style="text-align:right">Acciones</th>
+              </tr></thead>
+              <tbody id="dashboard-tbody"></tbody>
+            </table>
+            <div id="dashboard-empty" class="empty-state" style="display:none">
+              <div class="empty-state-icon">🏆</div>
+              <p>Aún no hay torneos. ¡Crea el primero!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TOURNAMENTS PANEL ── -->
+      <div class="panel" id="panel-tournaments">
+        <div class="section-hdr" style="margin-bottom:20px">
+          <div>
+            <h2>Todos los torneos</h2>
+            <p>Gestiona, edita y cambia el estado de cada torneo</p>
+          </div>
+          <button class="btn btn-primary" onclick="openCreateModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nuevo Torneo
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-filters">
+            <input class="search-input" type="text" id="searchTournaments" placeholder="Buscar por nombre o juego..." oninput="filterTournaments()" />
+            <select class="filter-select" id="filterStatus" onchange="filterTournaments()">
+              <option value="">Todos los estados</option>
+              <option value="upcoming">Próximamente</option>
+              <option value="open">Inscripciones</option>
+              <option value="in_progress">En curso</option>
+              <option value="finished">Finalizado</option>
+              <option value="cancelled">Cancelado</option>
+            </select>
+            <select class="filter-select" id="filterGame" onchange="filterTournaments()">
+              <option value="">Todos los juegos</option>
+              <option>Valorant</option>
+              <option>FC26</option>
+              <option>League of Legends</option>
+              <option>Fortnite</option>
+              <option>Just Dance</option>
+              <option>Formula 1</option>
+              <option>Free Fire</option>
+              <option>PUBG Mobile</option>
+            </select>
+          </div>
+          <div id="tournaments-loading" class="loading"><div class="spinner"></div> Cargando torneos...</div>
+          <div id="tournaments-content" style="display:none">
+            <table>
+              <thead><tr>
+                <th>Torneo</th><th>Juego</th><th>Plataforma</th><th>Formato</th><th>Estado</th><th>Cupos</th><th>Inicio</th><th style="text-align:right">Acciones</th>
+              </tr></thead>
+              <tbody id="tournaments-tbody"></tbody>
+            </table>
+            <div id="tournaments-empty" class="empty-state" style="display:none">
+              <div class="empty-state-icon">🔍</div>
+              <p>No se encontraron torneos con esos filtros.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PLAYERS PANEL ── -->
+      <div class="panel" id="panel-players">
+        <div class="section-hdr" style="margin-bottom:20px">
+          <div>
+            <h2>Jugadores registrados</h2>
+            <p>Todos los perfiles creados en la plataforma</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-filters">
+            <input class="search-input" type="text" id="searchPlayers" placeholder="Buscar por username, nombre o país..." oninput="filterPlayers()" />
+          </div>
+          <div id="players-loading" class="loading"><div class="spinner"></div> Cargando jugadores...</div>
+          <div id="players-content" style="display:none">
+            <table>
+              <thead><tr>
+                <th>Jugador</th><th>País</th><th>Discord</th><th>Registrado</th>
+              </tr></thead>
+              <tbody id="players-tbody"></tbody>
+            </table>
+            <div id="players-empty" class="empty-state" style="display:none">
+              <div class="empty-state-icon">👥</div>
+              <p>No se encontraron jugadores.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div><!-- /layout -->
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+  const SUPABASE_URL      = 'https://ambmqayzxqylztbylnkq.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtYm1xYXl6eHF5bHp0YnlsbmtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTE4NjMsImV4cCI6MjA4OTI2Nzg2M30.GC8ZveqhZ_SYb5gfV2sN_sTdPQuud4JSuIZuZ5h-mAU';
+  const ADMIN_EMAIL       = 'soporteversusegames@gmail.com';
+
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ── Estado global ──
+  let allTournaments = [];
+  let allPlayers = [];
+  let editingId = null;
+
+  // ── Exponer funciones al window ──
+  window.showPanel       = showPanel;
+  window.openCreateModal = openCreateModal;
+  window.closeModal      = closeModal;
+  window.saveTournament  = saveTournament;
+  window.editTournament  = editTournament;
+  window.deleteTournament= deleteTournamentConfirm;
+  window.changeStatus    = changeStatus;
+  window.closeConfirm    = closeConfirm;
+  window.filterTournaments = filterTournaments;
+  window.filterPlayers   = filterPlayers;
+  window.logout          = logout;
+
+  // ── INIT ──
+  async function init() {
+    // Fecha en topbar
+    document.getElementById('topbarDate').textContent =
+      new Date().toLocaleDateString('es-CO', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+    // Verificar sesión
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+
+    const email = session.user.email;
+
+    // Verificar que sea admin
+    if (email !== ADMIN_EMAIL) {
+      document.getElementById('access-denied').classList.add('show');
+      return;
+    }
+
+    // Mostrar info del admin
+    document.getElementById('adminEmail').textContent = email;
+    document.getElementById('adminAvatar').textContent = email[0].toUpperCase();
+
+    // Cargar datos
+    await Promise.all([loadTournaments(), loadPlayers(), loadStats()]);
+  }
+
+  // ── CARGAR STATS ──
+  async function loadStats() {
+    const [{ count: total }, { count: players }, { count: regs }] = await Promise.all([
+      sb.from('tournaments').select('*', { count:'exact', head:true }),
+      sb.from('profiles').select('*', { count:'exact', head:true }),
+      sb.from('registrations').select('*', { count:'exact', head:true }),
+    ]);
+
+    const { count: active } = await sb.from('tournaments')
+      .select('*', { count:'exact', head:true })
+      .in('status', ['open', 'in_progress']);
+
+    document.getElementById('stat-total').textContent        = total ?? 0;
+    document.getElementById('stat-active').textContent       = active ?? 0;
+    document.getElementById('stat-players').textContent      = players ?? 0;
+    document.getElementById('stat-registrations').textContent= regs ?? 0;
+    document.getElementById('players-count').textContent     = players ?? 0;
+  }
+
+  // ── CARGAR TORNEOS ──
+  async function loadTournaments() {
+    const { data, error } = await sb.from('tournaments')
+      .select('*').order('created_at', { ascending: false });
+
+    document.getElementById('tournaments-loading').style.display = 'none';
+    document.getElementById('dashboard-table-loading').style.display = 'none';
+    document.getElementById('tournaments-content').style.display = 'block';
+    document.getElementById('dashboard-table').style.display = 'block';
+
+    if (error) { showToast('Error cargando torneos', 'error'); return; }
+
+    allTournaments = data || [];
+    document.getElementById('tournaments-count').textContent = allTournaments.length;
+    renderTournaments(allTournaments);
+    renderDashboardTable(allTournaments.slice(0, 5));
+  }
+
+  // ── CARGAR JUGADORES ──
+  async function loadPlayers() {
+    const { data, error } = await sb.from('profiles')
+      .select('*').order('created_at', { ascending: false });
+
+    document.getElementById('players-loading').style.display = 'none';
+    document.getElementById('players-content').style.display = 'block';
+
+    if (error) return;
+    allPlayers = data || [];
+    renderPlayers(allPlayers);
+  }
+
+  // ── RENDER TORNEOS ──
+  function renderTournaments(list) {
+    const tbody = document.getElementById('tournaments-tbody');
+    const empty = document.getElementById('tournaments-empty');
+    if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+
+    tbody.innerHTML = list.map(t => `
+      <tr>
+        <td class="td-name">
+          ${t.title}
+          <small>${t.prize_description ? '🏅 ' + t.prize_description.slice(0,40) + (t.prize_description.length>40?'...':'') : 'Sin premio definido'}</small>
+        </td>
+        <td><span class="game-chip">${gameIcon(t.game)} ${t.game}</span></td>
+        <td><span style="font-size:0.78rem">${t.platform || 'PC'}</span></td>
+        <td><span style="font-size:0.78rem;color:var(--light)">${formatLabel(t.format)}</span></td>
+        <td>${statusBadge(t.status)}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div class="slots-bar"><div class="slots-fill" style="width:${slotsPct(t)}%"></div></div>
+            <span style="font-size:0.75rem">${t.current_players||0}/${t.max_players||0}</span>
+          </div>
+        </td>
+        <td style="font-size:0.78rem">${t.start_date ? fmtDate(t.start_date) : '—'}</td>
+        <td>
+          <div class="td-actions">
+            <button class="btn btn-ghost btn-icon btn-sm" title="Editar" onclick="editTournament('${t.id}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <select onchange="changeStatus('${t.id}', this.value)" style="background:var(--black3);border:var(--border);border-radius:6px;padding:5px 8px;color:var(--gray);font-size:0.72rem;cursor:pointer;outline:none" title="Cambiar estado">
+              <option value="">Estado</option>
+              <option value="upcoming"  ${t.status==='upcoming'?'selected':''}>Próximo</option>
+              <option value="open"      ${t.status==='open'?'selected':''}>Abierto</option>
+              <option value="in_progress"${t.status==='in_progress'?'selected':''}>En curso</option>
+              <option value="finished"  ${t.status==='finished'?'selected':''}>Finalizado</option>
+              <option value="cancelled" ${t.status==='cancelled'?'selected':''}>Cancelar</option>
+            </select>
+            <button class="btn btn-danger btn-icon btn-sm" title="Eliminar" onclick="deleteTournament('${t.id}','${t.title.replace(/'/g,"\\'")}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // ── RENDER DASHBOARD TABLE ──
+  function renderDashboardTable(list) {
+    const tbody = document.getElementById('dashboard-tbody');
+    const empty = document.getElementById('dashboard-empty');
+    if (!list.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display = 'none';
+    tbody.innerHTML = list.map(t => `
+      <tr>
+        <td class="td-name">${t.title}</td>
+        <td><span class="game-chip">${gameIcon(t.game)} ${t.game}</span></td>
+        <td>${statusBadge(t.status)}</td>
+        <td><span style="font-size:0.78rem">${t.current_players||0}/${t.max_players||0}</span></td>
+        <td style="font-size:0.78rem">${t.start_date ? fmtDate(t.start_date) : '—'}</td>
+        <td>
+          <div class="td-actions">
+            <button class="btn btn-ghost btn-sm" onclick="editTournament('${t.id}')">Editar</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // ── RENDER PLAYERS ──
+  function renderPlayers(list) {
+    const tbody = document.getElementById('players-tbody');
+    const empty = document.getElementById('players-empty');
+    if (!list.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display = 'none';
+    tbody.innerHTML = list.map(p => `
+      <tr>
+        <td class="td-name">
+          ${p.username || '—'}
+          <small>${p.full_name || ''}</small>
+        </td>
+        <td style="font-size:0.82rem">${countryFlag(p.country)} ${p.country || '—'}</td>
+        <td style="font-size:0.78rem;color:var(--gray2)">${p.discord_tag || '—'}</td>
+        <td style="font-size:0.75rem;color:var(--gray2)">${fmtDate(p.created_at)}</td>
+      </tr>
+    `).join('');
+  }
+
+  // ── FILTROS ──
+  function filterTournaments() {
+    const q      = document.getElementById('searchTournaments').value.toLowerCase();
+    const status = document.getElementById('filterStatus').value;
+    const game   = document.getElementById('filterGame').value;
+    const filtered = allTournaments.filter(t =>
+      (!q      || t.title.toLowerCase().includes(q) || t.game.toLowerCase().includes(q)) &&
+      (!status || t.status === status) &&
+      (!game   || t.game === game)
+    );
+    renderTournaments(filtered);
+  }
+
+  function filterPlayers() {
+    const q = document.getElementById('searchPlayers').value.toLowerCase();
+    const filtered = allPlayers.filter(p =>
+      !q ||
+      (p.username||'').toLowerCase().includes(q) ||
+      (p.full_name||'').toLowerCase().includes(q) ||
+      (p.country||'').toLowerCase().includes(q)
+    );
+    renderPlayers(filtered);
+  }
+
+  // ── MODAL CREAR ──
+  function openCreateModal() {
+    editingId = null;
+    document.getElementById('modalTitle').innerHTML = 'Nuevo <span>Torneo</span>';
+    document.getElementById('saveBtn').textContent = '✓  Guardar torneo';
+    document.getElementById('tournamentForm').reset();
+    document.getElementById('tournamentModal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('tournamentModal').classList.remove('open');
+    editingId = null;
+  }
+
+  // ── MODAL EDITAR ──
+  window.editTournament = function(id) {
+    const t = allTournaments.find(x => x.id === id);
+    if (!t) return;
+    editingId = id;
+    document.getElementById('modalTitle').innerHTML = 'Editar <span>Torneo</span>';
+    document.getElementById('saveBtn').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Guardar cambios';
+
+    // Rellenar campos
+    document.getElementById('f-title').value        = t.title || '';
+    document.getElementById('f-game').value         = t.game || '';
+    document.getElementById('f-platform').value     = t.platform || 'PC';
+    document.getElementById('f-region').value       = t.region || 'LATAM';
+    document.getElementById('f-status').value       = t.status || 'upcoming';
+    document.getElementById('f-format').value       = t.format || 'single_elimination';
+    document.getElementById('f-max-players').value  = t.max_players || 16;
+    document.getElementById('f-description').value  = t.description || '';
+    document.getElementById('f-prize').value        = t.prize_description || '';
+    document.getElementById('f-cover').value        = t.cover_url || '';
+    if (t.start_date) document.getElementById('f-start-date').value = t.start_date.slice(0,16);
+    if (t.end_date)   document.getElementById('f-end-date').value   = t.end_date.slice(0,16);
+
+    // Campos extra de metadata
+    if (t.metadata) {
+      document.getElementById('f-participant-type').value = t.metadata.participant_type || 'individual';
+      document.getElementById('f-team-size').value        = t.metadata.team_size || '1';
+      document.getElementById('f-series').value           = t.metadata.series || 'BO1';
+      document.getElementById('f-sponsor').value          = t.metadata.sponsor || '';
+      document.getElementById('f-sponsor-url').value      = t.metadata.sponsor_url || '';
+      document.getElementById('f-reg-end').value          = t.metadata.reg_end ? t.metadata.reg_end.slice(0,16) : '';
+    }
+
+    document.getElementById('tournamentModal').classList.add('open');
+  };
+
+  // ── GUARDAR TORNEO ──
+  async function saveTournament() {
+    const title = document.getElementById('f-title').value.trim();
+    const game  = document.getElementById('f-game').value;
+    const startDate = document.getElementById('f-start-date').value;
+
+    if (!title || !game || !startDate) {
+      showToast('Completa los campos obligatorios (*)', 'error'); return;
+    }
+
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px"></div> Guardando...';
+
+    const payload = {
+      title,
+      game,
+      platform:         document.getElementById('f-platform').value,
+      region:           document.getElementById('f-region').value,
+      status:           document.getElementById('f-status').value,
+      format:           document.getElementById('f-format').value,
+      max_players:      parseInt(document.getElementById('f-max-players').value) || 16,
+      description:      document.getElementById('f-description').value.trim() || null,
+      prize_description:document.getElementById('f-prize').value.trim() || null,
+      cover_url:        document.getElementById('f-cover').value.trim() || null,
+      start_date:       startDate || null,
+      end_date:         document.getElementById('f-end-date').value || null,
+      metadata: {
+        participant_type: document.getElementById('f-participant-type').value,
+        team_size:        document.getElementById('f-team-size').value,
+        series:           document.getElementById('f-series').value,
+        sponsor:          document.getElementById('f-sponsor').value.trim(),
+        sponsor_url:      document.getElementById('f-sponsor-url').value.trim(),
+        reg_end:          document.getElementById('f-reg-end').value || null,
+      }
+    };
+
+    let error;
+    if (editingId) {
+      ({ error } = await sb.from('tournaments').update(payload).eq('id', editingId));
+    } else {
+      ({ error } = await sb.from('tournaments').insert(payload));
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Guardar torneo';
+
+    if (error) {
+      showToast('Error: ' + error.message, 'error'); return;
+    }
+
+    showToast(editingId ? '✅ Torneo actualizado' : '🎉 Torneo creado exitosamente', 'success');
+    closeModal();
+    await Promise.all([loadTournaments(), loadStats()]);
+  }
+
+  // ── CAMBIAR ESTADO ──
+  window.changeStatus = async function(id, status) {
+    if (!status) return;
+    const { error } = await sb.from('tournaments').update({ status }).eq('id', id);
+    if (error) { showToast('Error al cambiar estado', 'error'); return; }
+    showToast('Estado actualizado', 'success');
+    await Promise.all([loadTournaments(), loadStats()]);
+  };
+
+  // ── ELIMINAR ──
+  let pendingDeleteId = null;
+  window.deleteTournamentConfirm = function(id, name) {
+    pendingDeleteId = id;
+    document.getElementById('confirmTitle').textContent = '¿Eliminar torneo?';
+    document.getElementById('confirmDesc').textContent  = `Se eliminará "${name}" de forma permanente. Esta acción no se puede deshacer.`;
+    document.getElementById('confirmOk').onclick = async () => {
+      const { error } = await sb.from('tournaments').delete().eq('id', pendingDeleteId);
+      closeConfirm();
+      if (error) { showToast('Error al eliminar', 'error'); return; }
+      showToast('Torneo eliminado', 'success');
+      await Promise.all([loadTournaments(), loadStats()]);
+    };
+    document.getElementById('confirmOverlay').classList.add('open');
+  };
+
+  function closeConfirm() {
+    document.getElementById('confirmOverlay').classList.remove('open');
+    pendingDeleteId = null;
+  }
+
+  // ── LOGOUT ──
+  async function logout() {
+    await sb.auth.signOut();
+    window.location.href = 'login.html';
+  }
+
+  // ── NAVEGACIÓN ENTRE PANELS ──
+  function showPanel(name) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => {
+      if (n.textContent.trim().toLowerCase().startsWith(name === 'dashboard' ? 'dash' : name.slice(0,4)))
+        n.classList.add('active');
+    });
+    // Título dinámico del topbar
+    const titles = { dashboard:'Dashboard', tournaments:'Torneos', players:'Jugadores' };
+    document.querySelector('.topbar-title').innerHTML = `Panel de <span>${titles[name] || name}</span>`;
+  }
+
+  // ── TOAST ──
+  function showToast(msg, type = 'success') {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.innerHTML = `<span class="toast-icon">${type==='success'?'✅':'❌'}</span><span class="toast-msg">${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+  }
+
+  // ── HELPERS ──
+  function gameIcon(g) {
+    const icons = { Valorant:'🎯', FC26:'⚽', 'League of Legends':'⚔️', Fortnite:'🔫',
+      'Just Dance':'💃', 'Formula 1':'🏎️', 'Free Fire':'🔥', 'PUBG Mobile':'📱',
+      'Call of Duty':'🎖️', 'Rocket League':'🚀' };
+    return icons[g] || '🎮';
+  }
+
+  function statusBadge(s) {
+    const labels = { upcoming:'Próximo', open:'Abierto', in_progress:'En Curso', finished:'Finalizado', cancelled:'Cancelado' };
+    return `<span class="badge badge-${s}">${labels[s]||s}</span>`;
+  }
+
+  function formatLabel(f) {
+    const map = { single_elimination:'Elim. Simple', double_elimination:'Elim. Doble',
+      round_robin:'Round Robin', swiss:'Suizo', groups_playoffs:'Grupos+PO' };
+    return map[f] || f || '—';
+  }
+
+  function slotsPct(t) {
+    if (!t.max_players || !t.current_players) return 0;
+    return Math.min(100, Math.round((t.current_players / t.max_players) * 100));
+  }
+
+  function fmtDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' });
+  }
+
+  function countryFlag(c) {
+    const flags = { CO:'🇨🇴', MX:'🇲🇽', AR:'🇦🇷', CL:'🇨🇱', PE:'🇵🇪', VE:'🇻🇪', EC:'🇪🇨', ES:'🇪🇸', PA:'🇵🇦' };
+    return flags[c] || '🌎';
+  }
+
+  // ── Cerrar modal con ESC ──
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeModal(); closeConfirm(); }
+  });
+
+  // ── Iniciar ──
+  init();
+</script>
+</body>
+</html>
