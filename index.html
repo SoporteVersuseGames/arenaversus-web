@@ -1032,6 +1032,8 @@
           <li><a href="#nosotros">Nosotros</a></li>
         </ul>
         <div class="nav-right">
+          <a href="login.html" id="loginBtn" style="color:var(--gray);font-size:0.82rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:8px 14px;border-radius:6px;transition:var(--transition);" onmouseover="this.style.color='var(--white)';this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.color='var(--gray)';this.style.background='transparent'">Iniciar sesión</a>
+          <a href="admin.html" id="adminBtn" style="display:none;align-items:center;gap:6px;color:var(--red);font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:7px 13px;border-radius:6px;border:1px solid rgba(234,57,53,0.35);transition:var(--transition);" onmouseover="this.style.background='rgba(234,57,53,0.1)'" onmouseout="this.style.background='transparent'">⚙ Admin</a>
           <a href="register.html" class="btn btn-primary">Registrarse</a>
           <button class="nav-toggle" id="navToggle" aria-label="Menú">
             <span></span><span></span><span></span>
@@ -1047,7 +1049,9 @@
     <a href="#juegos" class="mobile-link">Juegos</a>
     <a href="#clasificacion" class="mobile-link">Clasificación</a>
     <a href="#nosotros" class="mobile-link">Nosotros</a>
-    <a href="#registro" class="btn btn-primary">Crear cuenta gratis</a>
+    <a href="login.html" id="loginBtnMobile" class="mobile-link">Iniciar Sesión</a>
+    <a href="admin.html" id="adminBtnMobile" class="mobile-link" style="display:none;color:var(--red);font-weight:700;">⚙ Panel Admin</a>
+    <a href="register.html" class="btn btn-primary">Crear cuenta gratis</a>
   </div>
 
   <!-- ══════════════════ HERO ══════════════════ -->
@@ -1574,6 +1578,76 @@
     }
 
     // ── Cargar torneos dinámicos ─────────────────────────
+    const FALLBACK_TOURNAMENTS = `
+      <div class="tournament-card fade-in fade-in-delay-1">
+        <div class="tournament-cover cover-valorant">
+          <span class="cover-icon">🎯</span>
+          <span class="tournament-badge">En Curso</span>
+        </div>
+        <div class="tournament-body">
+          <div class="tournament-game">Valorant</div>
+          <div class="tournament-name">Copa Arena<br />Valorant Abierta</div>
+          <div class="tournament-meta">
+            <div class="meta-row"><span class="meta-icon">⚔️</span> <span>Formato:</span> <strong>Eliminación Doble</strong></div>
+            <div class="meta-row"><span class="meta-icon">👥</span> <span>Cupos:</span> <strong>14 / 16 equipos</strong></div>
+            <div class="meta-row"><span class="meta-icon">📅</span> <span>Inicio:</span> <strong>28 Mar 2026</strong></div>
+          </div>
+          <div class="slots-bar"><div class="slots-fill" style="width:87%"></div></div>
+          <a href="register.html" class="btn btn-primary">Ver Torneo →</a>
+        </div>
+      </div>
+      <div class="tournament-card fade-in fade-in-delay-2">
+        <div class="tournament-cover cover-fc26">
+          <span class="cover-icon">⚽</span>
+          <span class="tournament-badge">Inscripciones</span>
+        </div>
+        <div class="tournament-body">
+          <div class="tournament-game">FC 26</div>
+          <div class="tournament-name">Liga Arena<br />FC26 — Temporada 1</div>
+          <div class="tournament-meta">
+            <div class="meta-row"><span class="meta-icon">⚔️</span> <span>Formato:</span> <strong>Eliminación Simple</strong></div>
+            <div class="meta-row"><span class="meta-icon">👥</span> <span>Cupos:</span> <strong>8 / 32 jugadores</strong></div>
+            <div class="meta-row"><span class="meta-icon">📅</span> <span>Inicio:</span> <strong>5 Abr 2026</strong></div>
+          </div>
+          <div class="slots-bar"><div class="slots-fill" style="width:25%"></div></div>
+          <a href="register.html" class="btn btn-primary">Ver Torneo →</a>
+        </div>
+      </div>
+      <div class="tournament-card fade-in fade-in-delay-3">
+        <div class="tournament-cover cover-lol">
+          <span class="cover-icon">⚔️</span>
+          <span class="tournament-badge">Próximamente</span>
+        </div>
+        <div class="tournament-body">
+          <div class="tournament-game">League of Legends</div>
+          <div class="tournament-name">Arena LoL<br />Cup — Invitacional</div>
+          <div class="tournament-meta">
+            <div class="meta-row"><span class="meta-icon">⚔️</span> <span>Formato:</span> <strong>Grupos + Playoffs</strong></div>
+            <div class="meta-row"><span class="meta-icon">👥</span> <span>Cupos:</span> <strong>0 / 8 equipos</strong></div>
+            <div class="meta-row"><span class="meta-icon">📅</span> <span>Apertura:</span> <strong>20 Abr 2026</strong></div>
+          </div>
+          <div class="slots-bar"><div class="slots-fill" style="width:5%"></div></div>
+          <a href="register.html" class="btn btn-outline">Notificarme</a>
+        </div>
+      </div>
+      <div class="tournament-card fade-in fade-in-delay-4">
+        <div class="tournament-cover cover-fortnite">
+          <span class="cover-icon">🔫</span>
+          <span class="tournament-badge">Inscripciones</span>
+        </div>
+        <div class="tournament-body">
+          <div class="tournament-game">Fortnite</div>
+          <div class="tournament-name">Fortnite<br />Arena Solos</div>
+          <div class="tournament-meta">
+            <div class="meta-row"><span class="meta-icon">⚔️</span> <span>Formato:</span> <strong>Puntos / Kill Race</strong></div>
+            <div class="meta-row"><span class="meta-icon">👥</span> <span>Cupos:</span> <strong>19 / 64 jugadores</strong></div>
+            <div class="meta-row"><span class="meta-icon">📅</span> <span>Inicio:</span> <strong>10 Abr 2026</strong></div>
+          </div>
+          <div class="slots-bar"><div class="slots-fill" style="width:30%"></div></div>
+          <a href="register.html" class="btn btn-primary">Ver Torneo →</a>
+        </div>
+      </div>
+    `;
     async function loadTournaments() {
       try {
         const { data: torneos, error } = await sb
@@ -1587,8 +1661,11 @@
         const emptyState= document.getElementById('tournaments-empty');
 
         if (!torneos || torneos.length === 0 || error) {
-          if (skeleton)   skeleton.style.display   = 'none';
-          if (emptyState) emptyState.style.display = 'block';
+          if (skeleton)   skeleton.style.display  = 'none';
+          if (dynamic) {
+            dynamic.innerHTML = FALLBACK_TOURNAMENTS;
+            dynamic.style.display = 'grid';
+          }
           return;
         }
 
@@ -1648,9 +1725,9 @@
 
       } catch(e) {
         const skeleton = document.getElementById('tournaments-skeleton');
-        const empty    = document.getElementById('tournaments-empty');
+        const dynamic  = document.getElementById('tournaments-dynamic');
         if (skeleton) skeleton.style.display = 'none';
-        if (empty)    empty.style.display    = 'block';
+        if (dynamic)  { dynamic.innerHTML = FALLBACK_TOURNAMENTS; dynamic.style.display = 'grid'; }
       }
     }
 
@@ -1665,9 +1742,11 @@
         const adminBtn       = document.getElementById('adminBtn');
         const adminBtnMobile = document.getElementById('adminBtnMobile');
         const loginBtn       = document.getElementById('loginBtn');
-        if (adminBtn)       adminBtn.style.display       = 'inline-flex';
-        if (adminBtnMobile) adminBtnMobile.style.display = 'block';
-        if (loginBtn)       loginBtn.style.display       = 'none';
+        if (adminBtn)       adminBtn.style.display         = 'inline-flex';
+        if (adminBtnMobile) adminBtnMobile.style.display   = 'block';
+        if (loginBtn)       loginBtn.style.display         = 'none';
+        const loginBtnMobile = document.getElementById('loginBtnMobile');
+        if (loginBtnMobile) loginBtnMobile.style.display   = 'none';
       } catch(e) {}
     }
 
