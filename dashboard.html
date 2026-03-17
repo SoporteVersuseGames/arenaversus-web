@@ -337,10 +337,10 @@
     // ══════════════════════════════════════
     //  ⚙️ CONFIGURACIÓN — REEMPLAZA ESTOS VALORES
     // ══════════════════════════════════════
-    const SUPABASE_URL = ' https://ambmqayzxqylztbylnkq.supabase.co';
+    const SUPABASE_URL = 'https://ambmqayzxqylztbylnkq.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtYm1xYXl6eHF5bHp0YnlsbmtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTE4NjMsImV4cCI6MjA4OTI2Nzg2M30.GC8ZveqhZ_SYb5gfV2sN_sTdPQuud4JSuIZuZ5h-mAU';
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const GAMES_MAP = {
       FC26: '⚽ FC 26', LOL: '⚔️ LoL', Valorant: '🎯 Valorant',
@@ -357,7 +357,7 @@
     let currentProfile = null;
 
     async function init() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await sb.auth.getSession();
       if (!session) { window.location.href = 'login.html'; return; }
       currentUser = session.user;
       await loadProfile();
@@ -365,13 +365,13 @@
     }
 
     async function loadProfile() {
-      const { data: profile } = await supabase
+      const { data: profile } = await sb
         .from('profiles')
         .select('*')
         .eq('id', currentUser.id)
         .single();
 
-      const { data: games } = await supabase
+      const { data: games } = await sb
         .from('player_games')
         .select('game_name')
         .eq('player_id', currentUser.id);
@@ -435,7 +435,7 @@
 
       const newFullName = `${document.getElementById('editFirstName').value.trim()} ${document.getElementById('editLastName').value.trim()}`.trim();
 
-      const { error } = await supabase
+      const { error } = await sb
         .from('profiles')
         .update({
           username: document.getElementById('editUsername').value.trim(),
@@ -461,7 +461,7 @@
 
     // LOGOUT
     document.getElementById('logoutBtn').addEventListener('click', async () => {
-      await supabase.auth.signOut();
+      await sb.auth.signOut();
       window.location.href = 'index.html';
     });
 
@@ -474,7 +474,7 @@
     }
 
     // Listener de auth
-    supabase.auth.onAuthStateChange((event, session) => {
+    sb.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') window.location.href = 'login.html';
     });
 
