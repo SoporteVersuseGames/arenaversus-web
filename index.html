@@ -1032,7 +1032,8 @@
           <li><a href="#nosotros">Nosotros</a></li>
         </ul>
         <div class="nav-right">
-          <a href="login.html" style="color:var(--gray);font-size:0.82rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:8px 14px;border-radius:6px;transition:var(--transition);" onmouseover="this.style.color='var(--white)';this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.color='var(--gray)';this.style.background='transparent'">Iniciar sesión</a>
+          <a href="login.html" id="loginBtn" style="color:var(--gray);font-size:0.82rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:8px 14px;border-radius:6px;transition:var(--transition);">Iniciar sesión</a>
+          <a href="admin.html" id="adminBtn" style="display:none;color:var(--red);font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:7px 13px;border-radius:6px;border:1px solid rgba(234,57,53,0.35);transition:var(--transition);">⚙ Admin</a>
           <a href="register.html" class="btn btn-primary">Registrarse</a>
           <button class="nav-toggle" id="navToggle" aria-label="Menú">
             <span></span><span></span><span></span>
@@ -1049,6 +1050,7 @@
     <a href="#clasificacion" class="mobile-link">Clasificación</a>
     <a href="#nosotros" class="mobile-link">Nosotros</a>
     <a href="login.html" class="mobile-link">Iniciar Sesión</a>
+    <a href="admin.html" id="adminBtnMobile" class="mobile-link" style="display:none;color:var(--red);font-weight:700;">⚙ Panel Admin</a>
     <a href="register.html" class="btn btn-primary">Crear cuenta gratis</a>
   </div>
 
@@ -1082,12 +1084,12 @@
         </div>
         <div class="hero-stats fade-in fade-in-delay-4">
           <div class="stat-item">
-            <div class="stat-number"><span class="counter" data-target="120">0</span><span>+</span></div>
+            <div class="stat-number"><span class="counter" data-target="30000">0</span><span>K+</span></div>
             <div class="stat-label">Jugadores</div>
           </div>
           <div class="stat-divider"></div>
           <div class="stat-item">
-            <div class="stat-number"><span class="counter" data-target="8">0</span><span>+</span></div>
+            <div class="stat-number"><span class="counter" data-target="500">0</span><span>+</span></div>
             <div class="stat-label">Torneos</div>
           </div>
           <div class="stat-divider"></div>
@@ -1149,10 +1151,10 @@
             <div class="tournament-meta">
               <div class="meta-row"><span class="meta-icon">⚔️</span> <span>Formato:</span> <strong>Eliminación Doble</strong></div>
               <div class="meta-row"><span class="meta-icon">👥</span> <span>Cupos:</span> <strong>14 / 16 equipos</strong></div>
-              <div class="meta-row"><span class="meta-icon">📅</span> <span>Próxima fecha:</span> <strong>28 Mar 2026</strong></div>
+              <div class="meta-row"><span class="meta-icon">📅</span> <span>Próxima fecha:</span> <strong>22 Mar 2025</strong></div>
             </div>
             <div class="slots-bar"><div class="slots-fill" style="width:87%"></div></div>
-            <a href="torneos.html" class="btn btn-primary">Ver Torneo →</a>
+            <a href="#registro" class="btn btn-primary">Ver Torneo →</a>
           </div>
         </div>
         <!-- FC 26 -->
@@ -1167,10 +1169,10 @@
             <div class="tournament-meta">
               <div class="meta-row"><span class="meta-icon">⚔️</span> <span>Formato:</span> <strong>Eliminación Simple</strong></div>
               <div class="meta-row"><span class="meta-icon">👥</span> <span>Cupos:</span> <strong>8 / 32 jugadores</strong></div>
-              <div class="meta-row"><span class="meta-icon">📅</span> <span>Inicio:</span> <strong>5 Abr 2026</strong></div>
+              <div class="meta-row"><span class="meta-icon">📅</span> <span>Inicio:</span> <strong>1 Abr 2025</strong></div>
             </div>
             <div class="slots-bar"><div class="slots-fill" style="width:25%"></div></div>
-            <a href="torneos.html" class="btn btn-primary">Ver Torneo →</a>
+            <a href="#registro" class="btn btn-primary">Ver Torneo →</a>
           </div>
         </div>
         <!-- LOL -->
@@ -1185,10 +1187,10 @@
             <div class="tournament-meta">
               <div class="meta-row"><span class="meta-icon">⚔️</span> <span>Formato:</span> <strong>Grupos + Playoffs</strong></div>
               <div class="meta-row"><span class="meta-icon">👥</span> <span>Cupos:</span> <strong>0 / 8 equipos</strong></div>
-              <div class="meta-row"><span class="meta-icon">📅</span> <span>Apertura:</span> <strong>20 Abr 2026</strong></div>
+              <div class="meta-row"><span class="meta-icon">📅</span> <span>Apertura:</span> <strong>15 Abr 2025</strong></div>
             </div>
             <div class="slots-bar"><div class="slots-fill" style="width:5%"></div></div>
-            <a href="torneos.html" class="btn btn-outline">Notificarme</a>
+            <a href="#registro" class="btn btn-outline">Notificarme</a>
           </div>
         </div>
         <!-- Fortnite -->
@@ -1203,10 +1205,10 @@
             <div class="tournament-meta">
               <div class="meta-row"><span class="meta-icon">⚔️</span> <span>Formato:</span> <strong>Puntos / Kill Race</strong></div>
               <div class="meta-row"><span class="meta-icon">👥</span> <span>Cupos:</span> <strong>19 / 64 jugadores</strong></div>
-              <div class="meta-row"><span class="meta-icon">📅</span> <span>Inicio:</span> <strong>10 Abr 2026</strong></div>
+              <div class="meta-row"><span class="meta-icon">📅</span> <span>Inicio:</span> <strong>5 Abr 2025</strong></div>
             </div>
             <div class="slots-bar"><div class="slots-fill" style="width:30%"></div></div>
-            <a href="torneos.html" class="btn btn-primary">Ver Torneo →</a>
+            <a href="#registro" class="btn btn-primary">Ver Torneo →</a>
           </div>
         </div>
       </div>
@@ -1300,12 +1302,12 @@
     <div class="container">
       <div class="stats-grid fade-in">
         <div class="stats-item">
-          <div class="stats-number"><span class="counter-stat accent" data-target="120">0</span><span class="accent">+</span></div>
+          <div class="stats-number"><span class="counter-stat accent" data-target="30">0</span><span class="accent">K+</span></div>
           <div class="stats-label">Jugadores Registrados</div>
         </div>
         <div class="stats-item">
-          <div class="stats-number"><span class="counter-stat accent" data-target="8">0</span><span class="accent">+</span></div>
-          <div class="stats-label">Torneos Realizados</div>
+          <div class="stats-number"><span class="counter-stat accent" data-target="500">0</span><span class="accent">+</span></div>
+          <div class="stats-label">Torneos Jugados</div>
         </div>
         <div class="stats-item">
           <div class="stats-number"><span class="accent">$0</span></div>
@@ -1375,7 +1377,7 @@
             <li><a href="#torneos">Torneos Activos</a></li>
             <li><a href="#juegos">Catálogo de Juegos</a></li>
             <li><a href="#clasificacion">Clasificación</a></li>
-            <li><a href="register.html">Crear Cuenta</a></li>
+            <li><a href="#registro">Crear Cuenta</a></li>
           </ul>
         </div>
         <div class="footer-col">
@@ -1398,7 +1400,7 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p class="footer-copy">© 2026 <span>Arena Versus</span>. Todos los derechos reservados. LATAM Esports.</p>
+        <p class="footer-copy">© 2025 <span>Arena Versus</span>. Todos los derechos reservados. LATAM Esports.</p>
         <p class="footer-copy">Construido para competidores. Diseñado en LATAM. 🔥</p>
       </div>
     </div>
@@ -1462,12 +1464,12 @@
     function animateCounter(el, target, duration = 1800) {
       const start = performance.now();
       const isKilo = target >= 1000;
-      const displayTarget = isKilo ? Math.round(target / 1000) : target;
+      const displayTarget = isKilo ? target / 1000 : target;
 
       function update(now) {
         const elapsed = now - start;
         const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
+        const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
         const current = Math.floor(eased * displayTarget);
         el.textContent = current;
         if (progress < 1) requestAnimationFrame(update);
@@ -1514,6 +1516,43 @@
         }
       });
     });
+  </script>
+
+  <!-- ── ADMIN LINK (solo visible para admins) ── -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    (async () => {
+      try {
+        const sb = supabase.createClient(
+          'https://ambmqayzxqylztbylnkq.supabase.co',
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtYm1xYXl6eHF5bHp0YnlsbmtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTE4NjMsImV4cCI6MjA4OTI2Nzg2M30.GC8ZveqhZ_SYb5gfV2sN_sTdPQuud4JSuIZuZ5h-mAU'
+        );
+
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) return;
+
+        const email = session.user.email;
+
+        // Verificar si es admin en Supabase
+        const { data: adminRow } = await sb
+          .from('admins')
+          .select('email')
+          .eq('email', email)
+          .maybeSingle();
+
+        if (!adminRow) return;
+
+        // Mostrar botón admin y ocultar login
+        const adminBtn       = document.getElementById('adminBtn');
+        const adminBtnMobile = document.getElementById('adminBtnMobile');
+        const loginBtn       = document.getElementById('loginBtn');
+
+        if (adminBtn)       adminBtn.style.display       = 'inline-flex';
+        if (adminBtnMobile) adminBtnMobile.style.display = 'block';
+        if (loginBtn)       loginBtn.style.display       = 'none';
+
+      } catch(e) { /* silencioso si hay error */ }
+    })();
   </script>
 </body>
 </html>
