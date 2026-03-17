@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Torneos — Arena Versus</title>
+  <meta name="description" content="Todos los torneos de esports en LATAM. Filtra por juego, plataforma, estado y región. Inscríbete en segundos."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --black:      #111111;
+      --black2:     #1c1c1c;
+      --black3:     #242424;
+      --black4:     #2e2e2e;
+      --red:        #ea3935;
+      --orange:     #ec622b;
+      --gradient:   linear-gradient(135deg,#ea3935 0%,#ec622b 100%);
+      --gray:       #c7c7c5;
+      --gray2:      #888886;
+      --light:      #eaeaea;
+      --white:      #ffffff;
+      --green:      #22c55e;
+      --blue:       #3b82f6;
+      --yellow:     #eab308;
+      --font:       'Inter Tight', sans-serif;
+      --radius:     8px;
+      --radius-lg:  12px;
+      --border:     1px solid rgba(255,255,255,0.07);
+      --border-red: 1px solid rgba(234,57,53,0.3);
+      --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html { scroll-behavior:smooth; }
+    body { font-family:var(--font); background:var(--black); color:var(--gray); line-height:1.6; overflow-x:hidden; }
+    a { text-decoration:none; color:inherit; }
+
+    /* GRAIN */
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:9999;
+      opacity:0.03;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size:200px 200px;
+    }
+
+    /* ── NAVBAR ── */
+    .navbar {
+      position:fixed; top:0; left:0; right:0; z-index:1000;
+      background:rgba(17,17,17,0.9); backdrop-filter:blur(20px);
+      border-bottom:var(--border); height:68px;
+      display:flex; align-items:center;
+    }
+    .nav-inner { max-width:1280px; margin:0 auto; padding:0 24px; width:100%; display:flex; align-items:center; justify-content:space-between; }
+    .nav-brand { display:flex; align-items:center; gap:10px; }
+    .nav-wordmark { font-size:0.95rem; font-weight:900; color:var(--white); text-transform:uppercase; letter-spacing:0.1em; }
+    .nav-links { display:flex; align-items:center; gap:4px; }
+    .nav-links a { color:var(--gray2); font-size:0.82rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; padding:8px 14px; border-radius:6px; transition:var(--transition); }
+    .nav-links a:hover { color:var(--white); background:rgba(255,255,255,0.06); }
+    .nav-links a.active { color:var(--white); }
+    .nav-right { display:flex; align-items:center; gap:10px; }
+    .btn { display:inline-flex; align-items:center; gap:7px; padding:10px 20px; border-radius:var(--radius); border:none; font-family:var(--font); font-weight:700; font-size:0.8rem; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; transition:var(--transition); }
+    .btn-primary { background:var(--gradient); color:#fff; }
+    .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(234,57,53,0.4); }
+    .btn-outline { background:transparent; color:var(--white); border:2px solid rgba(255,255,255,0.3); }
+    .btn-outline:hover { border-color:var(--white); background:rgba(255,255,255,0.07); }
+    .btn-ghost { background:rgba(255,255,255,0.05); color:var(--gray); border:var(--border); }
+    .btn-ghost:hover { background:rgba(255,255,255,0.09); color:var(--white); }
+    .btn-sm { padding:7px 14px; font-size:0.75rem; }
+    .btn-lg { padding:14px 32px; font-size:0.88rem; }
+
+    /* ── HERO TORNEOS ── */
+    .page-hero {
+      padding: 120px 0 60px;
+      background: var(--black);
+      position: relative;
+      overflow: hidden;
+    }
+    .page-hero::before {
+      content:''; position:absolute; top:-200px; right:-200px;
+      width:600px; height:600px;
+      background:radial-gradient(circle, rgba(234,57,53,0.12) 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .page-hero::after {
+      content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
+      background:linear-gradient(90deg,transparent,rgba(234,57,53,0.3),transparent);
+    }
+    .page-hero .container { max-width:1280px; margin:0 auto; padding:0 24px; position:relative; z-index:1; }
+    .hero-tag {
+      display:inline-flex; align-items:center; gap:8px;
+      background:rgba(234,57,53,0.1); border:var(--border-red);
+      color:var(--red); font-size:0.72rem; font-weight:700;
+      letter-spacing:0.15em; text-transform:uppercase;
+      padding:6px 14px; border-radius:4px; margin-bottom:20px;
+    }
+    .hero-tag::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--red); animation:pulse-dot 2s infinite; }
+    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.7)} }
+    .page-hero h1 { font-size:clamp(2rem,4vw,3.2rem); font-weight:900; color:var(--white); text-transform:uppercase; letter-spacing:-0.02em; line-height:1.05; margin-bottom:14px; }
+    .page-hero h1 span { background:var(--gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .page-hero p { color:var(--gray); font-size:1rem; max-width:500px; }
+    .hero-stats-row { display:flex; gap:32px; margin-top:32px; flex-wrap:wrap; }
+    .hero-stat { display:flex; flex-direction:column; gap:3px; }
+    .hero-stat-num { font-size:1.6rem; font-weight:900; color:var(--white); line-height:1; }
+    .hero-stat-num span { background:var(--gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .hero-stat-label { font-size:0.72rem; font-weight:600; color:var(--gray2); text-transform:uppercase; letter-spacing:0.1em; }
+    .hero-divider { width:1px; height:36px; background:rgba(255,255,255,0.1); align-self:center; }
+
+    /* ── FILTROS ── */
+    .filters-section {
+      background:var(--black2);
+      border-bottom:var(--border);
+      position:sticky; top:68px; z-index:100;
+      padding:16px 0;
+    }
+    .filters-inner { max-width:1280px; margin:0 auto; padding:0 24px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .filter-search {
+      flex:1; min-width:220px;
+      background:var(--black3); border:var(--border); border-radius:var(--radius);
+      padding:9px 14px 9px 38px; color:var(--light); font-family:var(--font);
+      font-size:0.85rem; outline:none; transition:var(--transition);
+      position:relative;
+    }
+    .filter-search:focus { border-color:rgba(234,57,53,0.5); background:var(--black4); }
+    .filter-search::placeholder { color:rgba(199,199,197,0.35); }
+    .search-wrap { position:relative; flex:1; min-width:220px; }
+    .search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); opacity:0.4; pointer-events:none; }
+    .filter-select {
+      background:var(--black3); border:var(--border); border-radius:var(--radius);
+      padding:9px 14px; color:var(--gray); font-family:var(--font);
+      font-size:0.8rem; font-weight:600; outline:none; cursor:pointer;
+      transition:var(--transition); white-space:nowrap;
+    }
+    .filter-select:focus { border-color:rgba(234,57,53,0.4); }
+    .filter-select option { background:var(--black2); }
+    .filter-chips { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+    .chip {
+      padding:6px 14px; border-radius:100px;
+      font-size:0.73rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+      cursor:pointer; transition:var(--transition); border:1px solid rgba(255,255,255,0.1);
+      background:transparent; color:var(--gray2); font-family:var(--font);
+    }
+    .chip:hover { border-color:rgba(234,57,53,0.4); color:var(--light); }
+    .chip.active { background:rgba(234,57,53,0.12); border-color:rgba(234,57,53,0.4); color:var(--white); }
+    .filter-count { font-size:0.75rem; color:var(--gray2); white-space:nowrap; margin-left:4px; }
+    .filter-count span { color:var(--red); font-weight:700; }
+
+    /* ── MAIN CONTENT ── */
+    .main-content { max-width:1280px; margin:0 auto; padding:40px 24px 80px; }
+
+    /* ── SORT BAR ── */
+    .sort-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:12px; }
+    .sort-bar-left { display:flex; align-items:center; gap:10px; }
+    .sort-label { font-size:0.78rem; color:var(--gray2); }
+    .sort-select { background:var(--black3); border:var(--border); border-radius:var(--radius); padding:7px 12px; color:var(--gray); font-family:var(--font); font-size:0.78rem; outline:none; cursor:pointer; }
+    .view-toggle { display:flex; gap:4px; }
+    .view-btn { background:var(--black3); border:var(--border); border-radius:6px; padding:7px 10px; cursor:pointer; color:var(--gray2); transition:var(--transition); }
+    .view-btn.active { background:rgba(234,57,53,0.12); border-color:rgba(234,57,53,0.3); color:var(--white); }
+
+    /* ── GRID ── */
+    .tournaments-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:24px; }
+    .tournaments-grid.list-view { grid-template-columns:1fr; }
+
+    /* ── TOURNAMENT CARD ── */
+    .t-card {
+      background:var(--black2); border:var(--border); border-radius:var(--radius-lg);
+      overflow:hidden; transition:var(--transition); position:relative;
+      display:flex; flex-direction:column;
+    }
+    .t-card:hover { border-color:rgba(234,57,53,0.35); transform:translateY(-4px); box-shadow:0 20px 50px rgba(0,0,0,0.4); }
+    .list-view .t-card { flex-direction:row; }
+
+    /* Card cover */
+    .t-cover {
+      height:160px; position:relative; overflow:hidden;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .list-view .t-cover { width:200px; height:auto; min-height:160px; }
+    .t-cover-icon { font-size:3.5rem; opacity:0.85; filter:drop-shadow(0 4px 16px rgba(0,0,0,0.5)); }
+    .t-cover-img { width:100%; height:100%; object-fit:cover; }
+    .t-badge {
+      position:absolute; top:12px; right:12px;
+      font-size:0.65rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase;
+      padding:4px 10px; border-radius:4px;
+    }
+    .badge-open       { background:rgba(34,197,94,0.85);  color:#fff; }
+    .badge-upcoming   { background:rgba(59,130,246,0.85);  color:#fff; }
+    .badge-in_progress{ background:rgba(234,57,53,0.85);   color:#fff; }
+    .badge-finished   { background:rgba(100,100,98,0.85);  color:#fff; }
+    .badge-cancelled  { background:rgba(50,50,48,0.85);    color:var(--gray2); }
+    .t-hot { position:absolute; top:12px; left:12px; background:var(--gradient); color:#fff; font-size:0.6rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; padding:3px 8px; border-radius:4px; }
+
+    /* Card body */
+    .t-body { padding:20px; display:flex; flex-direction:column; gap:12px; flex:1; }
+    .t-game-label { font-size:0.7rem; font-weight:700; color:var(--red); letter-spacing:0.15em; text-transform:uppercase; }
+    .t-title { font-size:1.05rem; font-weight:800; color:var(--white); line-height:1.25; text-transform:uppercase; letter-spacing:0.01em; }
+    .t-description { font-size:0.82rem; color:var(--gray2); line-height:1.6; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
+    /* Info grid */
+    .t-info { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .t-info-item { display:flex; flex-direction:column; gap:2px; }
+    .t-info-label { font-size:0.65rem; font-weight:700; color:var(--gray2); text-transform:uppercase; letter-spacing:0.1em; }
+    .t-info-value { font-size:0.82rem; font-weight:600; color:var(--light); }
+
+    /* Tags */
+    .t-tags { display:flex; gap:6px; flex-wrap:wrap; }
+    .t-tag {
+      font-size:0.68rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+      padding:3px 10px; border-radius:100px; border:1px solid rgba(255,255,255,0.1);
+      color:var(--gray2);
+    }
+    .t-tag.platform { border-color:rgba(59,130,246,0.3); color:#60a5fa; background:rgba(59,130,246,0.08); }
+    .t-tag.region   { border-color:rgba(34,197,94,0.3);  color:#4ade80; background:rgba(34,197,94,0.08); }
+    .t-tag.series   { border-color:rgba(234,57,53,0.3);  color:#f87171; background:rgba(234,57,53,0.08); }
+
+    /* Prize */
+    .t-prize { display:flex; align-items:center; gap:8px; background:rgba(234,57,53,0.07); border:var(--border-red); border-radius:6px; padding:10px 12px; }
+    .t-prize-icon { font-size:1rem; flex-shrink:0; }
+    .t-prize-text { font-size:0.8rem; font-weight:600; color:var(--light); }
+    .t-prize-sponsor { font-size:0.7rem; color:var(--gray2); margin-top:1px; }
+
+    /* Slots */
+    .t-slots { display:flex; flex-direction:column; gap:5px; }
+    .t-slots-label { display:flex; justify-content:space-between; align-items:center; }
+    .t-slots-text { font-size:0.72rem; color:var(--gray2); font-weight:600; }
+    .t-slots-count { font-size:0.72rem; font-weight:700; color:var(--light); }
+    .slots-bar { background:rgba(255,255,255,0.07); border-radius:4px; height:4px; overflow:hidden; }
+    .slots-fill { height:100%; background:var(--gradient); border-radius:4px; transition:width 0.6s ease; }
+    .slots-fill.full { background:linear-gradient(135deg,#ef4444,#dc2626); }
+    .slots-fill.hot  { background:linear-gradient(135deg,#f59e0b,#d97706); }
+
+    /* Footer card */
+    .t-footer { display:flex; align-items:center; gap:8px; padding-top:4px; margin-top:auto; }
+    .t-footer .btn { flex:1; justify-content:center; font-size:0.75rem; padding:10px; }
+    .btn-detail { background:transparent; border:var(--border); color:var(--gray); padding:10px 14px; border-radius:var(--radius); font-size:0.75rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; font-family:var(--font); transition:var(--transition); white-space:nowrap; }
+    .btn-detail:hover { border-color:rgba(255,255,255,0.25); color:var(--white); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { text-align:center; padding:80px 20px; }
+    .empty-icon { font-size:3rem; opacity:0.3; margin-bottom:16px; }
+    .empty-title { font-size:1.1rem; font-weight:800; color:var(--white); margin-bottom:8px; }
+    .empty-desc { font-size:0.9rem; color:var(--gray2); margin-bottom:24px; }
+
+    /* ── LOADING SKELETON ── */
+    .skeleton-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:24px; }
+    .skeleton-card { background:var(--black2); border:var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+    .skeleton-cover { height:160px; background:rgba(255,255,255,0.04); animation:shimmer 1.5s infinite; }
+    .skeleton-body { padding:20px; display:flex; flex-direction:column; gap:12px; }
+    .skeleton-line { height:12px; background:rgba(255,255,255,0.05); border-radius:4px; animation:shimmer 1.5s infinite; }
+    @keyframes shimmer { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,0.8);
+      backdrop-filter:blur(8px); z-index:2000;
+      display:none; align-items:flex-start; justify-content:center;
+      padding:40px 20px; overflow-y:auto;
+    }
+    .modal-overlay.open { display:flex; }
+    .modal {
+      background:var(--black2); border:var(--border); border-radius:16px;
+      width:100%; max-width:640px; margin:auto;
+      box-shadow:0 40px 80px rgba(0,0,0,0.7);
+      animation:modal-in 0.28s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes modal-in { from{opacity:0;transform:scale(0.94) translateY(12px)} to{opacity:1;transform:scale(1) translateY(0)} }
+
+    .modal-cover { height:200px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; border-radius:16px 16px 0 0; }
+    .modal-cover-icon { font-size:5rem; opacity:0.8; filter:drop-shadow(0 8px 24px rgba(0,0,0,0.6)); }
+    .modal-cover-overlay { position:absolute; inset:0; background:linear-gradient(to top, var(--black2) 0%, transparent 60%); }
+    .modal-cover-badge { position:absolute; top:16px; right:16px; font-size:0.7rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; padding:5px 12px; border-radius:4px; }
+
+    .modal-body { padding:28px; }
+    .modal-game { font-size:0.7rem; font-weight:700; color:var(--red); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:6px; }
+    .modal-title { font-size:1.4rem; font-weight:900; color:var(--white); text-transform:uppercase; letter-spacing:-0.01em; line-height:1.2; margin-bottom:12px; }
+    .modal-desc { font-size:0.88rem; color:var(--gray); line-height:1.7; margin-bottom:20px; }
+
+    .modal-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:20px; }
+    .modal-info-item { background:var(--black3); border:var(--border); border-radius:var(--radius); padding:12px 14px; }
+    .modal-info-label { font-size:0.65rem; font-weight:700; color:var(--gray2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px; }
+    .modal-info-value { font-size:0.9rem; font-weight:700; color:var(--white); }
+
+    .modal-prize { background:rgba(234,57,53,0.08); border:var(--border-red); border-radius:var(--radius); padding:14px 16px; margin-bottom:20px; display:flex; align-items:flex-start; gap:12px; }
+    .modal-prize-icon { font-size:1.5rem; flex-shrink:0; margin-top:2px; }
+    .modal-prize-title { font-size:0.7rem; font-weight:700; color:var(--red); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px; }
+    .modal-prize-value { font-size:0.95rem; font-weight:700; color:var(--white); }
+    .modal-prize-sponsor { font-size:0.78rem; color:var(--gray2); margin-top:2px; }
+
+    .modal-slots { margin-bottom:24px; }
+    .modal-slots-header { display:flex; justify-content:space-between; margin-bottom:8px; }
+    .modal-slots-label { font-size:0.78rem; font-weight:700; color:var(--gray2); }
+    .modal-slots-count { font-size:0.78rem; font-weight:700; }
+    .modal-slots-count.available { color:var(--green); }
+    .modal-slots-count.low       { color:var(--yellow); }
+    .modal-slots-count.full      { color:var(--red); }
+
+    .modal-tags { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
+
+    .modal-footer { border-top:var(--border); padding:20px 28px 24px; display:flex; gap:10px; justify-content:flex-end; }
+    .modal-close-btn { position:absolute; top:16px; left:16px; background:rgba(0,0,0,0.5); border:none; border-radius:50%; width:36px; height:36px; cursor:pointer; color:#fff; display:flex; align-items:center; justify-content:center; transition:var(--transition); backdrop-filter:blur(4px); }
+    .modal-close-btn:hover { background:rgba(234,57,53,0.6); }
+
+    /* ── TOAST ── */
+    .toast-container { position:fixed; bottom:28px; right:28px; z-index:9000; display:flex; flex-direction:column; gap:8px; }
+    .toast { display:flex; align-items:center; gap:12px; background:var(--black2); border:var(--border); border-radius:var(--radius-lg); padding:14px 18px; min-width:280px; box-shadow:0 20px 40px rgba(0,0,0,0.4); animation:toast-in 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes toast-in { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+    .toast.success { border-left:3px solid var(--green); }
+    .toast.error   { border-left:3px solid var(--red); }
+    .toast.info    { border-left:3px solid var(--blue); }
+    .toast-msg { font-size:0.85rem; font-weight:600; color:var(--white); }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:900px) {
+      .nav-links { display:none; }
+      .filters-inner { gap:8px; }
+      .filter-chips { display:none; }
+      .tournaments-grid { grid-template-columns:1fr; }
+      .list-view .t-card { flex-direction:column; }
+      .list-view .t-cover { width:100%; height:160px; }
+      .modal-grid { grid-template-columns:1fr; }
+    }
+    @media(max-width:640px) {
+      .page-hero { padding:100px 0 40px; }
+      .hero-divider { display:none; }
+      .sort-bar { flex-direction:column; align-items:flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- MODAL INSCRIPCIÓN -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <div class="modal-cover" id="modalCover">
+      <span class="modal-cover-icon" id="modalCoverIcon"></span>
+      <div class="modal-cover-overlay"></div>
+      <span class="modal-cover-badge" id="modalCoverBadge"></span>
+      <button class="modal-close-btn" onclick="closeModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-game"  id="modalGame"></div>
+      <div class="modal-title" id="modalTitle"></div>
+      <div class="modal-desc"  id="modalDesc"></div>
+      <div class="modal-grid"  id="modalGrid"></div>
+      <div id="modalPrize"></div>
+      <div class="modal-slots" id="modalSlots"></div>
+      <div class="modal-tags"  id="modalTags"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="modalActionBtn" onclick="confirmInscription()">
+        ⚡ Confirmar inscripción
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <svg width="34" height="34" viewBox="0 0 38 38" fill="none">
+        <defs><linearGradient id="ng" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ea3935"/><stop offset="100%" stop-color="#ec622b"/></linearGradient></defs>
+        <path d="M19 2L4 9v10c0 8.5 6.4 16.4 15 18.5C28.6 35.4 35 27.5 35 19V9L19 2z" fill="url(#ng)" opacity="0.15"/>
+        <path d="M19 2L4 9v10c0 8.5 6.4 16.4 15 18.5C28.6 35.4 35 27.5 35 19V9L19 2z" fill="none" stroke="url(#ng)" stroke-width="1.5"/>
+        <path d="M10 26 L15 12 L19 22 M12.5 21 L17.5 21" stroke="url(#ng)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M20 12 L24 22 L28 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
+      </svg>
+      <span class="nav-wordmark">Arena Versus</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#torneos">Inicio</a>
+      <a href="torneos.html" class="active">Torneos</a>
+      <a href="index.html#juegos">Juegos</a>
+      <a href="index.html#clasificacion">Clasificación</a>
+    </div>
+    <div class="nav-right">
+      <a href="login.html"     id="loginBtn"  style="color:var(--gray2);font-size:0.82rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:8px 14px;border-radius:6px;transition:var(--transition)">Iniciar sesión</a>
+      <a href="admin.html"     id="adminBtn"  style="display:none;color:var(--red);font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:7px 13px;border-radius:6px;border:1px solid rgba(234,57,53,0.35);transition:var(--transition)">⚙ Admin</a>
+      <a href="register.html"  id="registerBtn" class="btn btn-primary btn-sm">Registrarse</a>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HERO -->
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-tag">Torneos Activos</div>
+    <h1>Compite.<br/><span>Escala. Domina.</span></h1>
+    <p>Todos los torneos de Arena Versus en LATAM. Filtra, explora e inscríbete en segundos.</p>
+    <div class="hero-stats-row">
+      <div class="hero-stat">
+        <div class="hero-stat-num"><span id="statTotal">—</span></div>
+        <div class="hero-stat-label">Torneos</div>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-num"><span id="statOpen">—</span></div>
+        <div class="hero-stat-label">Abiertos</div>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-num"><span id="statPlayers">—</span></div>
+        <div class="hero-stat-label">Jugadores</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FILTROS -->
+<div class="filters-section">
+  <div class="filters-inner">
+    <div class="search-wrap">
+      <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="filter-search" type="text" id="searchInput" placeholder="Buscar torneo o juego..." oninput="applyFilters()"/>
+    </div>
+    <select class="filter-select" id="filterGame" onchange="applyFilters()">
+      <option value="">🎮 Todos los juegos</option>
+      <option value="Valorant">🎯 Valorant</option>
+      <option value="FC26">⚽ FC 26</option>
+      <option value="League of Legends">⚔️ League of Legends</option>
+      <option value="Fortnite">🔫 Fortnite</option>
+      <option value="Just Dance">💃 Just Dance</option>
+      <option value="Formula 1">🏎️ Formula 1</option>
+      <option value="Free Fire">🔥 Free Fire</option>
+      <option value="PUBG Mobile">📱 PUBG Mobile</option>
+    </select>
+    <select class="filter-select" id="filterPlatform" onchange="applyFilters()">
+      <option value="">💻 Plataforma</option>
+      <option value="PC">💻 PC</option>
+      <option value="Console">🎮 Consola</option>
+      <option value="Mobile">📱 Mobile</option>
+      <option value="Any">🌐 Multiplataforma</option>
+    </select>
+    <select class="filter-select" id="filterRegion" onchange="applyFilters()">
+      <option value="">🌎 Región</option>
+      <option value="LATAM">🌎 LATAM</option>
+      <option value="Colombia">🇨🇴 Colombia</option>
+      <option value="México">🇲🇽 México</option>
+      <option value="Argentina">🇦🇷 Argentina</option>
+      <option value="Chile">🇨🇱 Chile</option>
+      <option value="Global">🌍 Global</option>
+    </select>
+    <div class="filter-chips">
+      <button class="chip active" onclick="setStatusFilter('',this)">Todos</button>
+      <button class="chip" onclick="setStatusFilter('open',this)">🟢 Abiertos</button>
+      <button class="chip" onclick="setStatusFilter('upcoming',this)">🔵 Próximos</button>
+      <button class="chip" onclick="setStatusFilter('in_progress',this)">🔴 En Curso</button>
+      <button class="chip" onclick="setStatusFilter('finished',this)">⚫ Finalizados</button>
+    </div>
+    <span class="filter-count">Mostrando <span id="filterCountNum">0</span> torneos</span>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+  <div class="sort-bar">
+    <div class="sort-bar-left">
+      <span class="sort-label">Ordenar por:</span>
+      <select class="sort-select" id="sortSelect" onchange="applyFilters()">
+        <option value="newest">Más recientes</option>
+        <option value="oldest">Más antiguos</option>
+        <option value="slots_asc">Cupos disponibles</option>
+        <option value="name_asc">Nombre A–Z</option>
+      </select>
+    </div>
+    <div class="view-toggle">
+      <button class="view-btn active" id="gridViewBtn" onclick="setView('grid')" title="Vista cuadrícula">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      </button>
+      <button class="view-btn" id="listViewBtn" onclick="setView('list')" title="Vista lista">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- SKELETON -->
+  <div class="skeleton-grid" id="skeletonGrid">
+    <div class="skeleton-card"><div class="skeleton-cover"></div><div class="skeleton-body"><div class="skeleton-line" style="width:40%"></div><div class="skeleton-line" style="width:75%"></div><div class="skeleton-line" style="width:60%"></div></div></div>
+    <div class="skeleton-card" style="opacity:0.6"><div class="skeleton-cover"></div><div class="skeleton-body"><div class="skeleton-line" style="width:40%"></div><div class="skeleton-line" style="width:75%"></div><div class="skeleton-line" style="width:60%"></div></div></div>
+    <div class="skeleton-card" style="opacity:0.35"><div class="skeleton-cover"></div><div class="skeleton-body"><div class="skeleton-line" style="width:40%"></div><div class="skeleton-line" style="width:75%"></div><div class="skeleton-line" style="width:60%"></div></div></div>
+  </div>
+
+  <!-- GRID DINÁMICO -->
+  <div class="tournaments-grid" id="tournamentsGrid" style="display:none"></div>
+
+  <!-- EMPTY STATE -->
+  <div class="empty-state" id="emptyState" style="display:none">
+    <div class="empty-icon">🔍</div>
+    <div class="empty-title">No se encontraron torneos</div>
+    <div class="empty-desc">Intenta cambiar los filtros o vuelve más tarde.</div>
+    <button class="btn btn-ghost btn-sm" onclick="resetFilters()">Limpiar filtros</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  const sb = supabase.createClient(
+    'https://ambmqayzxqylztbylnkq.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtYm1xYXl6eHF5bHp0YnlsbmtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTE4NjMsImV4cCI6MjA4OTI2Nzg2M30.GC8ZveqhZ_SYb5gfV2sN_sTdPQuud4JSuIZuZ5h-mAU',
+    { auth: { persistSession: true } }
+  );
+
+  // ── Estado ───────────────────────────────────────────
+  let allTournaments = [];
+  let currentSession = null;
+  let currentView    = 'grid';
+  let statusFilter   = '';
+  let activeTournament = null;
+  let userInscriptions = new Set();
+
+  // ── Helpers ──────────────────────────────────────────
+  const GAME_COVERS = {
+    'Valorant':          'background:linear-gradient(135deg,#ff4655 0%,#1a0a0a 100%)',
+    'FC26':              'background:linear-gradient(135deg,#00d2ff 0%,#002244 100%)',
+    'League of Legends': 'background:linear-gradient(135deg,#c89b3c 0%,#0a1628 100%)',
+    'Fortnite':          'background:linear-gradient(135deg,#7b2ff7 0%,#0d0d1a 100%)',
+    'Just Dance':        'background:linear-gradient(135deg,#ff6ec7 0%,#1a0a2a 100%)',
+    'Formula 1':         'background:linear-gradient(135deg,#e8002d 0%,#1a0a0a 100%)',
+    'Free Fire':         'background:linear-gradient(135deg,#ff8c00 0%,#1a0a00 100%)',
+    'PUBG Mobile':       'background:linear-gradient(135deg,#f5a623 0%,#1a1000 100%)',
+    'Call of Duty':      'background:linear-gradient(135deg,#2d6a4f 0%,#081c15 100%)',
+    'Rocket League':     'background:linear-gradient(135deg,#00b4d8 0%,#03045e 100%)'
+  };
+  const GAME_ICONS   = {'Valorant':'🎯','FC26':'⚽','League of Legends':'⚔️','Fortnite':'🔫','Just Dance':'💃','Formula 1':'🏎️','Free Fire':'🔥','PUBG Mobile':'📱','Call of Duty':'🎖️','Rocket League':'🚀'};
+  const STATUS_LABELS= {upcoming:'Próximamente',open:'Inscripciones',in_progress:'En Curso',finished:'Finalizado',cancelled:'Cancelado'};
+  const FORMAT_LABELS= {single_elimination:'Elim. Simple',double_elimination:'Elim. Doble',round_robin:'Round Robin',swiss:'Suizo',groups_playoffs:'Grupos + PO'};
+  const BADGE_CLASS  = {upcoming:'badge-upcoming',open:'badge-open',in_progress:'badge-in_progress',finished:'badge-finished',cancelled:'badge-cancelled'};
+
+  const gameIcon   = g => GAME_ICONS[g]   || '🎮';
+  const gameCover  = g => GAME_COVERS[g]  || 'background:linear-gradient(135deg,#ea3935 0%,#1a0a0a 100%)';
+  const statusLabel= s => STATUS_LABELS[s] || s;
+  const formatLabel= f => FORMAT_LABELS[f] || f;
+  const fmtDate    = d => d ? new Date(d).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+  const slotsPct   = t => (!t.max_players||!t.current_players) ? 0 : Math.min(100,Math.round((t.current_players/t.max_players)*100));
+  const slotsLeft  = t => !t.max_players ? null : t.max_players - (t.current_players||0);
+
+  function animateNum(el, n) {
+    if (!el) return;
+    const dur=1400, s=performance.now();
+    function tick(now) {
+      const p=Math.min((now-s)/dur,1), e=1-Math.pow(1-p,3);
+      el.textContent = Math.floor(e*n) + (p<1?'':'+');
+      if(p<1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function showToast(msg, type='success') {
+    const c=document.getElementById('toastContainer');
+    const t=document.createElement('div');
+    t.className=`toast ${type}`;
+    t.innerHTML=`<span>${type==='success'?'✅':type==='error'?'❌':'ℹ️'}</span><span class="toast-msg">${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(()=>t.remove(),3800);
+  }
+
+  // ── INIT ─────────────────────────────────────────────
+  async function init() {
+    // Sesión y admin en paralelo con datos
+    const [sessionRes] = await Promise.all([
+      sb.auth.getSession(),
+      loadTournaments(),
+      loadStats()
+    ]);
+
+    currentSession = sessionRes.data.session;
+    if (currentSession) {
+      // Cargar inscripciones del usuario
+      const { data: inscripciones } = await sb.from('registrations')
+        .select('tournament_id').eq('player_id', currentSession.user.id);
+      if (inscripciones) inscripciones.forEach(r => userInscriptions.add(r.tournament_id));
+
+      // Actualizar navbar
+      const loginBtn    = document.getElementById('loginBtn');
+      const registerBtn = document.getElementById('registerBtn');
+      if (loginBtn)    loginBtn.style.display    = 'none';
+      if (registerBtn) { registerBtn.textContent = 'Mi perfil'; registerBtn.href = 'dashboard.html'; }
+
+      // Verificar admin
+      const { data: adminRow } = await sb.from('admins').select('email')
+        .eq('email', currentSession.user.email).maybeSingle();
+      if (adminRow) {
+        const adminBtn = document.getElementById('adminBtn');
+        if (adminBtn) adminBtn.style.display = 'inline-flex';
+      }
+    }
+  }
+
+  // ── CARGAR STATS ─────────────────────────────────────
+  async function loadStats() {
+    const [resAll, resOpen, resP] = await Promise.all([
+      sb.from('tournaments').select('*',{count:'exact',head:true}).neq('status','cancelled'),
+      sb.from('tournaments').select('*',{count:'exact',head:true}).in('status',['open','in_progress']),
+      sb.from('profiles').select('*',{count:'exact',head:true})
+    ]);
+    animateNum(document.getElementById('statTotal'),   resAll.count  || 0);
+    animateNum(document.getElementById('statOpen'),    resOpen.count || 0);
+    animateNum(document.getElementById('statPlayers'), resP.count    || 0);
+  }
+
+  // ── CARGAR TORNEOS ───────────────────────────────────
+  async function loadTournaments() {
+    const { data, error } = await sb.from('tournaments')
+      .select('*').neq('status','cancelled')
+      .order('created_at',{ascending:false});
+
+    document.getElementById('skeletonGrid').style.display = 'none';
+    document.getElementById('tournamentsGrid').style.display = 'grid';
+
+    if (error || !data) { showEmpty(); return; }
+    allTournaments = data;
+    applyFilters();
+  }
+
+  // ── FILTROS Y ORDENAMIENTO ───────────────────────────
+  function applyFilters() {
+    const q        = document.getElementById('searchInput').value.toLowerCase().trim();
+    const game     = document.getElementById('filterGame').value;
+    const platform = document.getElementById('filterPlatform').value;
+    const region   = document.getElementById('filterRegion').value;
+    const sort     = document.getElementById('sortSelect').value;
+
+    let filtered = allTournaments.filter(t => {
+      if (statusFilter && t.status !== statusFilter) return false;
+      if (game     && t.game !== game)               return false;
+      if (platform && t.platform !== platform)       return false;
+      if (region   && t.region !== region)           return false;
+      if (q && !t.title.toLowerCase().includes(q) && !t.game.toLowerCase().includes(q) && !(t.description||'').toLowerCase().includes(q)) return false;
+      return true;
+    });
+
+    // Ordenar
+    filtered.sort((a,b) => {
+      if (sort === 'newest') return new Date(b.created_at) - new Date(a.created_at);
+      if (sort === 'oldest') return new Date(a.created_at) - new Date(b.created_at);
+      if (sort === 'slots_asc') return slotsLeft(a) - slotsLeft(b);
+      if (sort === 'name_asc') return a.title.localeCompare(b.title);
+      return 0;
+    });
+
+    document.getElementById('filterCountNum').textContent = filtered.length;
+    renderTournaments(filtered);
+  }
+
+  function setStatusFilter(status, el) {
+    statusFilter = status;
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    applyFilters();
+  }
+
+  function resetFilters() {
+    document.getElementById('searchInput').value   = '';
+    document.getElementById('filterGame').value    = '';
+    document.getElementById('filterPlatform').value= '';
+    document.getElementById('filterRegion').value  = '';
+    statusFilter = '';
+    document.querySelectorAll('.chip').forEach((c,i) => c.classList.toggle('active', i===0));
+    applyFilters();
+  }
+
+  function setView(v) {
+    currentView = v;
+    const grid = document.getElementById('tournamentsGrid');
+    grid.classList.toggle('list-view', v==='list');
+    document.getElementById('gridViewBtn').classList.toggle('active', v==='grid');
+    document.getElementById('listViewBtn').classList.toggle('active', v==='list');
+  }
+
+  // ── RENDER CARDS ─────────────────────────────────────
+  function renderTournaments(list) {
+    const grid  = document.getElementById('tournamentsGrid');
+    const empty = document.getElementById('emptyState');
+
+    if (!list.length) { grid.style.display='none'; empty.style.display='block'; return; }
+    empty.style.display = 'none';
+    grid.style.display  = 'grid';
+
+    grid.innerHTML = list.map(t => buildCard(t)).join('');
+  }
+
+  function showEmpty() {
+    document.getElementById('tournamentsGrid').style.display = 'none';
+    document.getElementById('emptyState').style.display      = 'block';
+  }
+
+  function buildCard(t) {
+    const pct      = slotsPct(t);
+    const left     = slotsLeft(t);
+    const enrolled = userInscriptions.has(t.id);
+    const meta     = t.metadata || {};
+    const isHot    = pct >= 75 && t.status === 'open';
+    const isFull   = left === 0;
+
+    const fillClass = isFull ? 'full' : isHot ? 'hot' : '';
+
+    let btnHtml;
+    if (t.status === 'finished')    btnHtml = `<button class="btn btn-ghost" disabled>Finalizado</button>`;
+    else if (t.status === 'cancelled') btnHtml = `<button class="btn btn-ghost" disabled>Cancelado</button>`;
+    else if (enrolled)              btnHtml = `<button class="btn btn-success" disabled>✅ Inscrito</button>`;
+    else if (isFull)                btnHtml = `<button class="btn btn-ghost" disabled>Sin cupos</button>`;
+    else                            btnHtml = `<button class="btn btn-primary" onclick="openModal('${t.id}')">⚡ Inscribirme</button>`;
+
+    const seriesTag  = meta.series  ? `<span class="t-tag series">${meta.series}</span>`         : '';
+    const platformTag= t.platform   ? `<span class="t-tag platform">${t.platform}</span>`        : '';
+    const regionTag  = t.region     ? `<span class="t-tag region">${t.region}</span>`            : '';
+    const prizeHtml  = t.prize_description ? `
+      <div class="t-prize">
+        <span class="t-prize-icon">🏅</span>
+        <div>
+          <div class="t-prize-text">${t.prize_description}</div>
+          ${meta.sponsor ? `<div class="t-prize-sponsor">Sponsor: ${meta.sponsor}</div>` : ''}
+        </div>
+      </div>` : '';
+
+    const slotsText = left === null ? 'Cupos ilimitados' : isFull ? 'Sin cupos disponibles' : `${left} cupos disponibles`;
+
+    return `
+      <div class="t-card">
+        <div class="t-cover" style="${gameCover(t.game)}">
+          ${isHot ? '<span class="t-hot">🔥 Popular</span>' : ''}
+          <span class="t-cover-icon">${gameIcon(t.game)}</span>
+          <span class="t-badge ${BADGE_CLASS[t.status]||''}">${statusLabel(t.status)}</span>
+        </div>
+        <div class="t-body">
+          <div class="t-game-label">${t.game}</div>
+          <div class="t-title">${t.title}</div>
+          ${t.description ? `<div class="t-description">${t.description}</div>` : ''}
+          <div class="t-info">
+            <div class="t-info-item">
+              <div class="t-info-label">Formato</div>
+              <div class="t-info-value">${formatLabel(t.format)}</div>
+            </div>
+            <div class="t-info-item">
+              <div class="t-info-label">Inicio</div>
+              <div class="t-info-value">${fmtDate(t.start_date)}</div>
+            </div>
+            <div class="t-info-item">
+              <div class="t-info-label">Plataforma</div>
+              <div class="t-info-value">${t.platform || '—'}</div>
+            </div>
+            <div class="t-info-item">
+              <div class="t-info-label">Región</div>
+              <div class="t-info-value">${t.region || 'LATAM'}</div>
+            </div>
+          </div>
+          <div class="t-tags">${seriesTag}${platformTag}${regionTag}</div>
+          ${prizeHtml}
+          <div class="t-slots">
+            <div class="t-slots-label">
+              <span class="t-slots-text">${slotsText}</span>
+              <span class="t-slots-count">${t.current_players||0} / ${t.max_players||'∞'}</span>
+            </div>
+            <div class="slots-bar"><div class="slots-fill ${fillClass}" style="width:${pct}%"></div></div>
+          </div>
+          <div class="t-footer">
+            ${btnHtml}
+            <button class="btn-detail" onclick="openModal('${t.id}')">Ver detalles</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // ── MODAL ────────────────────────────────────────────
+  function openModal(id) {
+    const t = allTournaments.find(x => x.id === id);
+    if (!t) return;
+    activeTournament = t;
+    const meta = t.metadata || {};
+    const pct  = slotsPct(t);
+    const left = slotsLeft(t);
+    const enrolled = userInscriptions.has(t.id);
+
+    // Cover
+    document.getElementById('modalCover').style.cssText += ';' + gameCover(t.game).replace('background','background');
+    document.getElementById('modalCover').setAttribute('style', gameCover(t.game));
+    document.getElementById('modalCoverIcon').textContent  = gameIcon(t.game);
+    document.getElementById('modalCoverBadge').textContent = statusLabel(t.status);
+    document.getElementById('modalCoverBadge').className   = `modal-cover-badge ${BADGE_CLASS[t.status]||''}`;
+
+    // Info básica
+    document.getElementById('modalGame').textContent  = t.game;
+    document.getElementById('modalTitle').textContent = t.title;
+    document.getElementById('modalDesc').textContent  = t.description || 'Torneo oficial de Arena Versus. Compite con los mejores jugadores de LATAM.';
+
+    // Grid de info
+    document.getElementById('modalGrid').innerHTML = `
+      <div class="modal-info-item"><div class="modal-info-label">Formato</div><div class="modal-info-value">${formatLabel(t.format)}</div></div>
+      <div class="modal-info-item"><div class="modal-info-label">Serie</div><div class="modal-info-value">${meta.series || 'BO1'}</div></div>
+      <div class="modal-info-item"><div class="modal-info-label">Inicio</div><div class="modal-info-value">${fmtDate(t.start_date)}</div></div>
+      <div class="modal-info-item"><div class="modal-info-label">Cierre inscripciones</div><div class="modal-info-value">${fmtDate(meta.reg_end)}</div></div>
+      <div class="modal-info-item"><div class="modal-info-label">Plataforma</div><div class="modal-info-value">${t.platform || '—'}</div></div>
+      <div class="modal-info-item"><div class="modal-info-label">Región</div><div class="modal-info-value">${t.region || 'LATAM'}</div></div>
+      <div class="modal-info-item"><div class="modal-info-label">Participantes</div><div class="modal-info-value">${meta.participant_type === 'team' ? 'Equipos' : meta.participant_type === 'duo' ? 'Dúos' : 'Individual'}</div></div>
+      <div class="modal-info-item"><div class="modal-info-label">Tamaño equipo</div><div class="modal-info-value">${meta.team_size ? meta.team_size + 'v' + meta.team_size : '1v1'}</div></div>
+    `;
+
+    // Premio
+    document.getElementById('modalPrize').innerHTML = t.prize_description ? `
+      <div class="modal-prize">
+        <div class="modal-prize-icon">🏅</div>
+        <div>
+          <div class="modal-prize-title">Premio</div>
+          <div class="modal-prize-value">${t.prize_description}</div>
+          ${meta.sponsor ? `<div class="modal-prize-sponsor">Patrocinado por: <strong>${meta.sponsor}</strong>${meta.sponsor_url ? ` · <a href="${meta.sponsor_url}" target="_blank" style="color:var(--red)">Ver más</a>` : ''}</div>` : ''}
+        </div>
+      </div>` : '';
+
+    // Slots
+    const slotsCountClass = left === null ? '' : left > 5 ? 'available' : left > 0 ? 'low' : 'full';
+    const slotsCountText  = left === null ? '∞ disponibles' : left > 0 ? `${left} cupos disponibles` : 'Sin cupos';
+    document.getElementById('modalSlots').innerHTML = `
+      <div class="modal-slots-header">
+        <span class="modal-slots-label">Cupos</span>
+        <span class="modal-slots-count ${slotsCountClass}">${slotsCountText}</span>
+      </div>
+      <div class="slots-bar"><div class="slots-fill ${left===0?'full':pct>=75?'hot':''}" style="width:${pct}%"></div></div>
+      <div style="font-size:0.75rem;color:var(--gray2);margin-top:6px">${t.current_players||0} inscritos de ${t.max_players||'∞'} máximo</div>
+    `;
+
+    // Tags
+    document.getElementById('modalTags').innerHTML = [
+      meta.series   ? `<span class="t-tag series">${meta.series}</span>` : '',
+      t.platform    ? `<span class="t-tag platform">${t.platform}</span>` : '',
+      t.region      ? `<span class="t-tag region">${t.region}</span>` : ''
+    ].join('');
+
+    // Botón acción
+    const actionBtn = document.getElementById('modalActionBtn');
+    if (t.status === 'finished' || t.status === 'cancelled') {
+      actionBtn.disabled = true; actionBtn.textContent = 'Torneo cerrado';
+    } else if (enrolled) {
+      actionBtn.disabled = true; actionBtn.textContent = '✅ Ya estás inscrito';
+    } else if (left === 0) {
+      actionBtn.disabled = true; actionBtn.textContent = 'Sin cupos disponibles';
+    } else {
+      actionBtn.disabled = false; actionBtn.innerHTML = '⚡ Confirmar inscripción';
+    }
+
+    document.getElementById('modalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+    activeTournament = null;
+  }
+
+  // ── INSCRIPCIÓN ──────────────────────────────────────
+  async function confirmInscription() {
+    if (!activeTournament) return;
+
+    // Sin sesión → al login
+    if (!currentSession) {
+      localStorage.setItem('av_redirect_after_login', 'torneos.html');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    const btn = document.getElementById('modalActionBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite"></span> Inscribiendo...';
+
+    const { error } = await sb.from('registrations').insert({
+      player_id:     currentSession.user.id,
+      tournament_id: activeTournament.id,
+      status:        'confirmed'
+    });
+
+    if (error) {
+      if (error.code === '23505') {
+        showToast('Ya estás inscrito en este torneo', 'info');
+        userInscriptions.add(activeTournament.id);
+      } else {
+        showToast('Error al inscribirse: ' + error.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '⚡ Confirmar inscripción';
+        return;
+      }
+    } else {
+      // Incrementar current_players
+      await sb.from('tournaments').update({
+        current_players: (activeTournament.current_players || 0) + 1
+      }).eq('id', activeTournament.id);
+
+      userInscriptions.add(activeTournament.id);
+      showToast('🎉 ¡Inscripción confirmada! Revisa tu perfil.', 'success');
+    }
+
+    closeModal();
+    // Recargar torneos para actualizar cupos
+    await loadTournaments();
+  }
+
+  // ── ESC para cerrar modal ────────────────────────────
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+  // ── CSS spinner inline ───────────────────────────────
+  const style = document.createElement('style');
+  style.textContent = '@keyframes spin{to{transform:rotate(360deg)}} .btn-success{background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3);cursor:default}';
+  document.head.appendChild(style);
+
+  // ── ARRANCAR ─────────────────────────────────────────
+  init();
+</script>
+</body>
+</html>
