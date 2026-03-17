@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi Perfil — Arena Versus</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --negro: #1c1c1c; --rojo: #ea3935; --naranja: #ec622b;
+      --gris: #c7c7c5; --gris-claro: #eaeaea;
+      --superficie: #242424; --superficie2: #2a2a2a; --borde: #2e2e2e;
+      --grad: linear-gradient(135deg, var(--rojo), var(--naranja));
+    }
+    html, body {
+      min-height: 100%; font-family: 'Inter Tight', sans-serif;
+      background: var(--negro); color: var(--gris-claro);
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 64px;
+      background: rgba(28,28,28,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--borde);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .nav-logo svg { width: 36px; height: 36px; }
+    .nav-logo span { font-size: 1rem; font-weight: 800; color: var(--gris-claro); letter-spacing: 0.05em; }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .nav-username { color: var(--gris); font-size: 0.875rem; font-weight: 600; }
+    .nav-username span { color: var(--rojo); }
+    .btn-logout {
+      background: rgba(234,57,53,0.1); border: 1px solid rgba(234,57,53,0.3);
+      color: var(--rojo); padding: 0.4rem 0.9rem; border-radius: 8px;
+      font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: inherit;
+      text-transform: uppercase; letter-spacing: 0.06em; transition: all 0.2s;
+    }
+    .btn-logout:hover { background: rgba(234,57,53,0.2); }
+
+    /* LAYOUT */
+    .page { padding: 84px 1.5rem 3rem; max-width: 1100px; margin: 0 auto; }
+
+    /* HERO PERFIL */
+    .profile-hero {
+      background: var(--superficie); border: 1px solid var(--borde);
+      border-radius: 20px; padding: 2rem; margin-bottom: 1.5rem;
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;
+    }
+    .profile-hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: var(--grad);
+    }
+    .profile-hero::after {
+      content: ''; position: absolute; top: -50px; right: -50px;
+      width: 250px; height: 250px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(234,57,53,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .avatar-wrap { position: relative; }
+    .avatar {
+      width: 90px; height: 90px; border-radius: 50%;
+      background: var(--grad); display: flex; align-items: center;
+      justify-content: center; font-size: 2.2rem; font-weight: 900;
+      color: #fff; border: 3px solid rgba(234,57,53,0.3);
+      text-transform: uppercase; user-select: none;
+      flex-shrink: 0;
+    }
+    .avatar-badge {
+      position: absolute; bottom: -2px; right: -2px;
+      width: 24px; height: 24px; border-radius: 50%;
+      background: #22c55e; border: 2px solid var(--negro);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem;
+    }
+
+    .profile-info { flex: 1; min-width: 200px; }
+    .profile-info .tag {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      background: rgba(234,57,53,0.1); border: 1px solid rgba(234,57,53,0.25);
+      color: var(--rojo); padding: 0.2rem 0.65rem; border-radius: 12px;
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.07em; margin-bottom: 0.6rem;
+    }
+    .profile-info h1 {
+      font-size: 1.8rem; font-weight: 900; text-transform: uppercase;
+      letter-spacing: 0.03em; line-height: 1.1; margin-bottom: 0.3rem;
+    }
+    .profile-info h1 span {
+      background: var(--grad); -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .profile-info .full-name { color: var(--gris); font-size: 0.95rem; font-weight: 500; }
+    .profile-info .meta {
+      display: flex; gap: 1rem; margin-top: 0.75rem; flex-wrap: wrap;
+    }
+    .meta-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; color: #888; }
+    .meta-item strong { color: var(--gris); font-weight: 600; }
+
+    .profile-stats {
+      display: flex; gap: 1rem; flex-direction: column; align-items: flex-end;
+    }
+    @media (max-width: 600px) { .profile-stats { flex-direction: row; align-items: flex-start; } }
+
+    .stat-pill {
+      background: rgba(255,255,255,0.04); border: 1px solid var(--borde);
+      border-radius: 12px; padding: 0.6rem 1.2rem; text-align: center;
+    }
+    .stat-pill .sval { font-size: 1.4rem; font-weight: 900; color: var(--rojo); }
+    .stat-pill .slabel { font-size: 0.7rem; color: var(--gris); text-transform: uppercase; letter-spacing: 0.07em; }
+
+    /* GRID DE SECCIONES */
+    .dashboard-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
+    }
+    @media (max-width: 700px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+    .section-card {
+      background: var(--superficie); border: 1px solid var(--borde);
+      border-radius: 16px; padding: 1.5rem;
+    }
+    .section-card.full-width { grid-column: 1 / -1; }
+    .section-title {
+      font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--rojo); margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+
+    /* JUEGOS */
+    .games-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .game-tag {
+      background: rgba(255,255,255,0.05); border: 1px solid var(--borde);
+      border-radius: 8px; padding: 0.4rem 0.75rem;
+      font-size: 0.78rem; font-weight: 600; color: var(--gris);
+      display: flex; align-items: center; gap: 0.35rem;
+    }
+    .game-tag.active { border-color: rgba(234,57,53,0.35); background: rgba(234,57,53,0.08); color: var(--gris-claro); }
+    .no-games { color: #555; font-size: 0.875rem; }
+
+    /* EDITAR PERFIL */
+    .edit-field { margin-bottom: 1rem; }
+    .edit-field label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--gris); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+    .edit-field input, .edit-field select, .edit-field textarea {
+      width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--borde);
+      border-radius: 8px; padding: 0.65rem 0.85rem; color: var(--gris-claro);
+      font-family: 'Inter Tight', sans-serif; font-size: 0.875rem; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s; -webkit-appearance: none;
+    }
+    .edit-field input:focus, .edit-field select:focus, .edit-field textarea:focus {
+      border-color: var(--rojo); box-shadow: 0 0 0 3px rgba(234,57,53,0.12);
+    }
+    .edit-field textarea { resize: vertical; min-height: 80px; }
+    .edit-field input::placeholder, .edit-field textarea::placeholder { color: #555; }
+    .edit-field select option { background: var(--negro); }
+
+    .btn-save {
+      background: var(--grad); border: none; border-radius: 8px;
+      color: #fff; padding: 0.65rem 1.5rem; font-family: inherit;
+      font-size: 0.85rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.07em; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-save:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(234,57,53,0.35); }
+    .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+    .save-feedback { display: inline-block; margin-left: 0.75rem; font-size: 0.82rem; color: #22c55e; opacity: 0; transition: opacity 0.3s; }
+    .save-feedback.show { opacity: 1; }
+
+    /* TORNEOS */
+    .empty-state { text-align: center; padding: 2rem 1rem; }
+    .empty-state .emoji { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
+    .empty-state p { color: #666; font-size: 0.875rem; margin-bottom: 1rem; }
+    .btn-outline {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: rgba(234,57,53,0.08); border: 1px solid rgba(234,57,53,0.3);
+      color: var(--rojo); padding: 0.55rem 1.2rem; border-radius: 8px;
+      font-size: 0.82rem; font-weight: 700; text-decoration: none;
+      text-transform: uppercase; letter-spacing: 0.07em; transition: all 0.2s;
+    }
+    .btn-outline:hover { background: rgba(234,57,53,0.15); }
+
+    /* CARGANDO */
+    .loading-overlay {
+      position: fixed; inset: 0; z-index: 999;
+      background: var(--negro); display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 1.5rem;
+      transition: opacity 0.4s;
+    }
+    .loading-overlay.hide { opacity: 0; pointer-events: none; }
+    .loading-logo { font-size: 3rem; animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    .loading-text { font-size: 0.875rem; color: var(--gris); text-transform: uppercase; letter-spacing: 0.12em; }
+  </style>
+</head>
+<body>
+
+  <!-- LOADING OVERLAY -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-logo">⚡</div>
+    <div class="loading-text">Cargando tu perfil...</div>
+  </div>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="index.html">
+      <svg viewBox="0 0 40 45" fill="none">
+        <defs>
+          <linearGradient id="dbLogo" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ea3935"/>
+            <stop offset="100%" stop-color="#ec622b"/>
+          </linearGradient>
+        </defs>
+        <path d="M20 2L38 11V28C38 36 29 42 20 44C11 42 2 36 2 28V11L20 2Z" fill="url(#dbLogo)" opacity="0.15" stroke="url(#dbLogo)" stroke-width="1.5"/>
+        <path d="M12 30L20 12L28 30" stroke="url(#dbLogo)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M14.5 24H25.5" stroke="url(#dbLogo)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span>ARENA VERSUS</span>
+    </a>
+    <div class="nav-right">
+      <span class="nav-username" id="navUsername">👤 <span>Jugador</span></span>
+      <button class="btn-logout" id="logoutBtn">Salir</button>
+    </div>
+  </nav>
+
+  <!-- CONTENIDO -->
+  <div class="page" id="pageContent" style="display:none;">
+
+    <!-- HERO PERFIL -->
+    <div class="profile-hero">
+      <div class="avatar-wrap">
+        <div class="avatar" id="avatarEl">?</div>
+        <div class="avatar-badge">✓</div>
+      </div>
+      <div class="profile-info">
+        <div class="tag">🎮 Jugador Arena Versus</div>
+        <h1>@<span id="heroUsername">username</span></h1>
+        <div class="full-name" id="heroFullName">Nombre completo</div>
+        <div class="meta">
+          <div class="meta-item">🌎 <strong id="heroCountry">LATAM</strong></div>
+          <div class="meta-item">📅 Miembro desde <strong id="heroDate">—</strong></div>
+          <div class="meta-item" id="discordMeta" style="display:none;">💬 <strong id="heroDiscord">—</strong></div>
+        </div>
+      </div>
+      <div class="profile-stats">
+        <div class="stat-pill">
+          <div class="sval" id="statTournaments">0</div>
+          <div class="slabel">Torneos</div>
+        </div>
+        <div class="stat-pill">
+          <div class="sval" id="statGames">0</div>
+          <div class="slabel">Juegos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRID -->
+    <div class="dashboard-grid">
+
+      <!-- Mis Juegos -->
+      <div class="section-card">
+        <div class="section-title">🎮 Mis juegos</div>
+        <div class="games-list" id="gamesList">
+          <span class="no-games">Cargando...</span>
+        </div>
+      </div>
+
+      <!-- Próximos Torneos -->
+      <div class="section-card">
+        <div class="section-title">🏆 Mis torneos</div>
+        <div class="empty-state">
+          <span class="emoji">🏆</span>
+          <p>Aún no te has inscrito a ningún torneo.</p>
+          <a href="index.html#torneos" class="btn-outline">Ver torneos disponibles →</a>
+        </div>
+      </div>
+
+      <!-- Editar Perfil (ancho completo) -->
+      <div class="section-card full-width">
+        <div class="section-title">✏️ Editar perfil</div>
+        <form id="editForm">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="edit-field">
+              <label>Nombre</label>
+              <input type="text" id="editFirstName" placeholder="Tu nombre" />
+            </div>
+            <div class="edit-field">
+              <label>Apellido</label>
+              <input type="text" id="editLastName" placeholder="Tu apellido" />
+            </div>
+          </div>
+          <div class="edit-field">
+            <label>Username (nombre de jugador)</label>
+            <input type="text" id="editUsername" placeholder="TuUsername" maxlength="20" />
+          </div>
+          <div class="edit-field">
+            <label>Descripción / Bio</label>
+            <textarea id="editBio" placeholder="Cuéntanos sobre ti como jugador..."></textarea>
+          </div>
+          <div class="edit-field">
+            <label>Discord</label>
+            <input type="text" id="editDiscord" placeholder="Usuario#1234 o @usuario" />
+          </div>
+          <div class="edit-field">
+            <label>País</label>
+            <select id="editCountry">
+              <option value="AR">🇦🇷 Argentina</option>
+              <option value="BO">🇧🇴 Bolivia</option>
+              <option value="BR">🇧🇷 Brasil</option>
+              <option value="CL">🇨🇱 Chile</option>
+              <option value="CO">🇨🇴 Colombia</option>
+              <option value="CR">🇨🇷 Costa Rica</option>
+              <option value="EC">🇪🇨 Ecuador</option>
+              <option value="MX">🇲🇽 México</option>
+              <option value="PA">🇵🇦 Panamá</option>
+              <option value="PE">🇵🇪 Perú</option>
+              <option value="UY">🇺🇾 Uruguay</option>
+              <option value="VE">🇻🇪 Venezuela</option>
+              <option value="ES">🇪🇸 España</option>
+              <option value="OTHER">🌎 Otro</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <button type="submit" class="btn-save" id="saveBtn">💾 Guardar cambios</button>
+            <span class="save-feedback" id="saveFeedback">✅ ¡Guardado!</span>
+          </div>
+        </form>
+      </div>
+
+    </div><!-- /grid -->
+  </div><!-- /page -->
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // ══════════════════════════════════════
+    //  ⚙️ CONFIGURACIÓN — REEMPLAZA ESTOS VALORES
+    // ══════════════════════════════════════
+    const SUPABASE_URL = ' https://ambmqayzxqylztbylnkq.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtYm1xYXl6eHF5bHp0YnlsbmtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTE4NjMsImV4cCI6MjA4OTI2Nzg2M30.GC8ZveqhZ_SYb5gfV2sN_sTdPQuud4JSuIZuZ5h-mAU';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const GAMES_MAP = {
+      FC26: '⚽ FC 26', LOL: '⚔️ LoL', Valorant: '🎯 Valorant',
+      Fortnite: '🔫 Fortnite', JustDance: '💃 Just Dance',
+      F1: '🏎️ F1', FreeFire: '🔥 Free Fire', PUBGMobile: '📱 PUBG Mobile'
+    };
+    const COUNTRIES_MAP = {
+      AR:'Argentina',BO:'Bolivia',BR:'Brasil',CL:'Chile',CO:'Colombia',
+      CR:'Costa Rica',EC:'Ecuador',MX:'México',PA:'Panamá',PE:'Perú',
+      UY:'Uruguay',VE:'Venezuela',ES:'España',OTHER:'Otro'
+    };
+
+    let currentUser = null;
+    let currentProfile = null;
+
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+      currentUser = session.user;
+      await loadProfile();
+      hideLoader();
+    }
+
+    async function loadProfile() {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', currentUser.id)
+        .single();
+
+      const { data: games } = await supabase
+        .from('player_games')
+        .select('game_name')
+        .eq('player_id', currentUser.id);
+
+      currentProfile = profile;
+      renderProfile(profile, games || []);
+    }
+
+    function renderProfile(p, games) {
+      if (!p) return;
+      const username = p.username || 'Jugador';
+      const fullName = p.full_name || '';
+      const nameParts = fullName.split(' ');
+
+      // Navbar
+      document.getElementById('navUsername').innerHTML = `👤 <span>${username}</span>`;
+
+      // Avatar
+      document.getElementById('avatarEl').textContent = username[0].toUpperCase();
+
+      // Hero
+      document.getElementById('heroUsername').textContent = username;
+      document.getElementById('heroFullName').textContent = fullName;
+      document.getElementById('heroCountry').textContent = COUNTRIES_MAP[p.country] || p.country || 'LATAM';
+      document.getElementById('heroDate').textContent = p.created_at
+        ? new Date(p.created_at).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+        : '—';
+
+      if (p.discord_tag) {
+        document.getElementById('heroDiscord').textContent = p.discord_tag;
+        document.getElementById('discordMeta').style.display = 'flex';
+      }
+
+      // Stats
+      document.getElementById('statGames').textContent = games.length;
+
+      // Juegos
+      const gamesList = document.getElementById('gamesList');
+      if (games.length === 0) {
+        gamesList.innerHTML = '<span class="no-games">No has seleccionado juegos aún.</span>';
+      } else {
+        gamesList.innerHTML = games.map(g =>
+          `<div class="game-tag active">${GAMES_MAP[g.game_name] || g.game_name}</div>`
+        ).join('');
+      }
+
+      // Formulario editar
+      document.getElementById('editFirstName').value = nameParts[0] || '';
+      document.getElementById('editLastName').value = nameParts.slice(1).join(' ') || '';
+      document.getElementById('editUsername').value = username;
+      document.getElementById('editBio').value = p.bio || '';
+      document.getElementById('editDiscord').value = p.discord_tag || '';
+      document.getElementById('editCountry').value = p.country || 'OTHER';
+    }
+
+    // GUARDAR CAMBIOS
+    document.getElementById('editForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('saveBtn');
+      btn.disabled = true; btn.textContent = 'Guardando...';
+
+      const newFullName = `${document.getElementById('editFirstName').value.trim()} ${document.getElementById('editLastName').value.trim()}`.trim();
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          username: document.getElementById('editUsername').value.trim(),
+          full_name: newFullName,
+          bio: document.getElementById('editBio').value.trim(),
+          discord_tag: document.getElementById('editDiscord').value.trim() || null,
+          country: document.getElementById('editCountry').value,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', currentUser.id);
+
+      btn.disabled = false; btn.textContent = '💾 Guardar cambios';
+
+      if (!error) {
+        const fb = document.getElementById('saveFeedback');
+        fb.classList.add('show');
+        setTimeout(() => fb.classList.remove('show'), 3000);
+        await loadProfile();
+      } else {
+        alert('Error al guardar: ' + error.message);
+      }
+    });
+
+    // LOGOUT
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = 'index.html';
+    });
+
+    function hideLoader() {
+      const overlay = document.getElementById('loadingOverlay');
+      const content = document.getElementById('pageContent');
+      overlay.classList.add('hide');
+      content.style.display = 'block';
+      setTimeout(() => overlay.remove(), 500);
+    }
+
+    // Listener de auth
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') window.location.href = 'login.html';
+    });
+
+    init();
+  </script>
+</body>
+</html>

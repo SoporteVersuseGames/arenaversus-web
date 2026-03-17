@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registrarse — Arena Versus</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --negro: #1c1c1c;
+      --rojo: #ea3935;
+      --naranja: #ec622b;
+      --gris: #c7c7c5;
+      --gris-claro: #eaeaea;
+      --superficie: #242424;
+      --borde: #2e2e2e;
+      --grad: linear-gradient(135deg, var(--rojo), var(--naranja));
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter Tight', sans-serif;
+      background-color: var(--negro);
+      color: var(--gris-claro);
+      overflow-x: hidden;
+    }
+
+    /* ── FONDO PLASMA ── */
+    .plasma-bg {
+      position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+    }
+    .plasma-bg::before {
+      content: '';
+      position: absolute; top: -20%; right: -10%;
+      width: 600px; height: 600px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(234,57,53,0.18) 0%, transparent 70%);
+      animation: plasma1 12s ease-in-out infinite alternate;
+    }
+    .plasma-bg::after {
+      content: '';
+      position: absolute; bottom: -20%; left: -10%;
+      width: 500px; height: 500px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(236,98,43,0.12) 0%, transparent 70%);
+      animation: plasma2 15s ease-in-out infinite alternate;
+    }
+    @keyframes plasma1 { from { transform: translate(0,0) scale(1); } to { transform: translate(-60px, 80px) scale(1.2); } }
+    @keyframes plasma2 { from { transform: translate(0,0) scale(1); } to { transform: translate(60px, -50px) scale(1.15); } }
+
+    /* ── NAVBAR ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 64px;
+      background: rgba(28,28,28,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--borde);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .nav-logo svg { width: 36px; height: 36px; }
+    .nav-logo span { font-size: 1rem; font-weight: 800; color: var(--gris-claro); letter-spacing: 0.05em; }
+    .nav-back {
+      color: var(--gris); text-decoration: none; font-size: 0.875rem;
+      font-weight: 500; display: flex; align-items: center; gap: 0.4rem;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: var(--rojo); }
+
+    /* ── LAYOUT PRINCIPAL ── */
+    .page-wrapper {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 100px 1.5rem 3rem;
+    }
+
+    .register-container {
+      width: 100%; max-width: 480px;
+    }
+
+    /* ── HEADER DEL FORM ── */
+    .form-header { text-align: center; margin-bottom: 2.5rem; }
+    .form-header .badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: rgba(234,57,53,0.12); border: 1px solid rgba(234,57,53,0.3);
+      color: var(--rojo); padding: 0.3rem 0.85rem; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; margin-bottom: 1.2rem;
+    }
+    .form-header h1 {
+      font-size: 2rem; font-weight: 900; line-height: 1.1;
+      color: var(--gris-claro); margin-bottom: 0.6rem;
+      text-transform: uppercase; letter-spacing: 0.02em;
+    }
+    .form-header h1 span {
+      background: var(--grad); -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .form-header p { color: var(--gris); font-size: 0.9rem; }
+
+    /* ── CARD DEL FORM ── */
+    .form-card {
+      background: var(--superficie);
+      border: 1px solid var(--borde);
+      border-radius: 16px;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .form-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--grad);
+    }
+
+    /* ── CAMPOS ── */
+    .field-group { margin-bottom: 1.25rem; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    
+    label {
+      display: block; font-size: 0.8rem; font-weight: 600;
+      color: var(--gris); text-transform: uppercase;
+      letter-spacing: 0.06em; margin-bottom: 0.5rem;
+    }
+    label span.required { color: var(--rojo); margin-left: 2px; }
+
+    .input-wrap { position: relative; }
+    .input-wrap .icon {
+      position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%);
+      color: var(--gris); font-size: 1rem; pointer-events: none;
+    }
+
+    input, select {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--borde);
+      border-radius: 10px;
+      padding: 0.75rem 0.85rem 0.75rem 2.4rem;
+      color: var(--gris-claro);
+      font-family: 'Inter Tight', sans-serif;
+      font-size: 0.9rem;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input::placeholder { color: #555; }
+    input:focus, select:focus {
+      border-color: var(--rojo);
+      background: rgba(234,57,53,0.06);
+      box-shadow: 0 0 0 3px rgba(234,57,53,0.12);
+    }
+    input.error { border-color: var(--rojo) !important; }
+    select { padding-left: 0.85rem; cursor: pointer; }
+    select option { background: var(--negro); color: var(--gris-claro); }
+
+    .field-error {
+      font-size: 0.78rem; color: var(--rojo); margin-top: 0.35rem;
+      display: none; align-items: center; gap: 0.3rem;
+    }
+    .field-error.show { display: flex; }
+
+    /* Hint de contraseña */
+    .password-hint {
+      font-size: 0.75rem; color: #555; margin-top: 0.4rem;
+    }
+    .password-strength { display: flex; gap: 4px; margin-top: 0.5rem; }
+    .strength-bar {
+      height: 3px; flex: 1; border-radius: 2px;
+      background: var(--borde); transition: background 0.3s;
+    }
+    .strength-bar.weak { background: #ef4444; }
+    .strength-bar.medium { background: #f59e0b; }
+    .strength-bar.strong { background: #22c55e; }
+
+    /* Toggle password */
+    .toggle-pw {
+      position: absolute; right: 0.85rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--gris); cursor: pointer;
+      font-size: 1rem; padding: 0; line-height: 1;
+    }
+
+    /* ── SELECTOR DE JUEGOS ── */
+    .games-label { font-size: 0.8rem; font-weight: 600; color: var(--gris); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.75rem; }
+    .games-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;
+    }
+    .game-chip {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--borde);
+      border-radius: 8px;
+      padding: 0.5rem 0.4rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .game-chip .gicon { font-size: 1.2rem; display: block; margin-bottom: 0.2rem; }
+    .game-chip .gname { font-size: 0.65rem; font-weight: 600; color: var(--gris); text-transform: uppercase; letter-spacing: 0.04em; }
+    .game-chip:hover { border-color: rgba(234,57,53,0.4); background: rgba(234,57,53,0.06); }
+    .game-chip.selected {
+      border-color: var(--rojo);
+      background: rgba(234,57,53,0.12);
+    }
+    .game-chip.selected .gname { color: var(--rojo); }
+
+    /* ── TÉRMINOS ── */
+    .terms-row {
+      display: flex; align-items: flex-start; gap: 0.75rem;
+      margin-top: 1.5rem; margin-bottom: 1.5rem;
+    }
+    .terms-row input[type="checkbox"] {
+      width: 18px; height: 18px; min-width: 18px; padding: 0;
+      accent-color: var(--rojo); cursor: pointer; border-radius: 4px;
+      margin-top: 2px;
+    }
+    .terms-row label {
+      font-size: 0.82rem; color: var(--gris); text-transform: none;
+      letter-spacing: 0; font-weight: 400; margin-bottom: 0;
+    }
+    .terms-row label a { color: var(--rojo); text-decoration: none; }
+    .terms-row label a:hover { text-decoration: underline; }
+
+    /* ── BOTÓN SUBMIT ── */
+    .btn-submit {
+      width: 100%; padding: 0.95rem;
+      background: var(--grad);
+      border: none; border-radius: 10px;
+      color: #fff; font-family: 'Inter Tight', sans-serif;
+      font-size: 0.9rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      cursor: pointer; position: relative; overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+    }
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(234,57,53,0.4);
+    }
+    .btn-submit:active:not(:disabled) { transform: translateY(0); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-submit .spinner {
+      display: none; width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+    .btn-submit.loading .btn-text { display: none; }
+    .btn-submit.loading .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── SEPARADOR ── */
+    .divider {
+      display: flex; align-items: center; gap: 1rem;
+      margin: 1.5rem 0; color: #444; font-size: 0.8rem;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--borde);
+    }
+
+    /* ── LINK LOGIN ── */
+    .login-link {
+      text-align: center; font-size: 0.875rem; color: var(--gris);
+    }
+    .login-link a {
+      color: var(--rojo); text-decoration: none; font-weight: 700;
+    }
+    .login-link a:hover { text-decoration: underline; }
+
+    /* ── ALERTAS ── */
+    .alert {
+      display: none; padding: 0.85rem 1rem; border-radius: 10px;
+      font-size: 0.875rem; font-weight: 500; margin-bottom: 1.25rem;
+      align-items: center; gap: 0.6rem;
+    }
+    .alert.show { display: flex; }
+    .alert.success {
+      background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);
+      color: #22c55e;
+    }
+    .alert.error-alert {
+      background: rgba(234,57,53,0.1); border: 1px solid rgba(234,57,53,0.3);
+      color: var(--rojo);
+    }
+
+    /* ── SUCCESS STATE ── */
+    .success-state {
+      display: none; text-align: center; padding: 1.5rem 0;
+    }
+    .success-state .checkmark {
+      font-size: 3.5rem; margin-bottom: 1rem; display: block;
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .success-state h2 { font-size: 1.4rem; font-weight: 900; text-transform: uppercase; margin-bottom: 0.5rem; }
+    .success-state p { color: var(--gris); font-size: 0.9rem; line-height: 1.6; }
+    .success-state .email-highlight {
+      background: rgba(234,57,53,0.1); border: 1px solid rgba(234,57,53,0.2);
+      color: var(--rojo); padding: 0.2rem 0.5rem; border-radius: 6px;
+      font-weight: 700; font-size: 0.85rem;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 480px) {
+      .form-card { padding: 1.5rem; }
+      .field-row { grid-template-columns: 1fr; gap: 0; }
+      .games-grid { grid-template-columns: repeat(4, 1fr); }
+      .form-header h1 { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- PLASMA BG -->
+  <div class="plasma-bg"></div>
+
+  <!-- NAVBAR -->
+  <nav>
+    <a class="nav-logo" href="index.html">
+      <svg viewBox="0 0 40 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="regLogo" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ea3935"/>
+            <stop offset="100%" stop-color="#ec622b"/>
+          </linearGradient>
+        </defs>
+        <path d="M20 2L38 11V28C38 36 29 42 20 44C11 42 2 36 2 28V11L20 2Z" fill="url(#regLogo)" opacity="0.15" stroke="url(#regLogo)" stroke-width="1.5"/>
+        <path d="M12 30L20 12L28 30" stroke="url(#regLogo)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M14.5 24H25.5" stroke="url(#regLogo)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span>ARENA VERSUS</span>
+    </a>
+    <a class="nav-back" href="index.html">← Volver al inicio</a>
+  </nav>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="page-wrapper">
+    <div class="register-container">
+
+      <!-- HEADER -->
+      <div class="form-header">
+        <div class="badge">⚡ ÚNETE GRATIS</div>
+        <h1>Crea tu <span>cuenta</span></h1>
+        <p>Regístrate y empieza a competir en torneos de esports en LATAM</p>
+      </div>
+
+      <!-- CARD DEL FORMULARIO -->
+      <div class="form-card">
+
+        <!-- ALERTA DE ERROR GLOBAL -->
+        <div class="alert error-alert" id="globalError">
+          <span>⚠️</span>
+          <span id="globalErrorMsg">Ocurrió un error. Intenta de nuevo.</span>
+        </div>
+
+        <!-- FORMULARIO -->
+        <form id="registerForm" novalidate>
+
+          <!-- Fila: Nombre y Apellido -->
+          <div class="field-row">
+            <div class="field-group">
+              <label for="firstName">Nombre <span class="required">*</span></label>
+              <div class="input-wrap">
+                <span class="icon">👤</span>
+                <input type="text" id="firstName" name="firstName" placeholder="Tu nombre" autocomplete="given-name" />
+              </div>
+              <div class="field-error" id="firstNameError">Campo requerido</div>
+            </div>
+            <div class="field-group">
+              <label for="lastName">Apellido <span class="required">*</span></label>
+              <div class="input-wrap">
+                <span class="icon">👤</span>
+                <input type="text" id="lastName" name="lastName" placeholder="Tu apellido" autocomplete="family-name" />
+              </div>
+              <div class="field-error" id="lastNameError">Campo requerido</div>
+            </div>
+          </div>
+
+          <!-- Username -->
+          <div class="field-group">
+            <label for="username">Nombre de jugador (username) <span class="required">*</span></label>
+            <div class="input-wrap">
+              <span class="icon">🎮</span>
+              <input type="text" id="username" name="username" placeholder="ej: ProGamer99" autocomplete="username" maxlength="20" />
+            </div>
+            <div class="field-error" id="usernameError">Mínimo 3 caracteres, sin espacios</div>
+          </div>
+
+          <!-- Email -->
+          <div class="field-group">
+            <label for="email">Correo electrónico <span class="required">*</span></label>
+            <div class="input-wrap">
+              <span class="icon">✉️</span>
+              <input type="email" id="email" name="email" placeholder="tucorreo@email.com" autocomplete="email" />
+            </div>
+            <div class="field-error" id="emailError">Ingresa un correo válido</div>
+          </div>
+
+          <!-- País -->
+          <div class="field-group">
+            <label for="country">País <span class="required">*</span></label>
+            <div class="input-wrap">
+              <select id="country" name="country">
+                <option value="" disabled selected>Selecciona tu país</option>
+                <option value="AR">🇦🇷 Argentina</option>
+                <option value="BO">🇧🇴 Bolivia</option>
+                <option value="BR">🇧🇷 Brasil</option>
+                <option value="CL">🇨🇱 Chile</option>
+                <option value="CO">🇨🇴 Colombia</option>
+                <option value="CR">🇨🇷 Costa Rica</option>
+                <option value="CU">🇨🇺 Cuba</option>
+                <option value="DO">🇩🇴 República Dominicana</option>
+                <option value="EC">🇪🇨 Ecuador</option>
+                <option value="SV">🇸🇻 El Salvador</option>
+                <option value="GT">🇬🇹 Guatemala</option>
+                <option value="HN">🇭🇳 Honduras</option>
+                <option value="MX">🇲🇽 México</option>
+                <option value="NI">🇳🇮 Nicaragua</option>
+                <option value="PA">🇵🇦 Panamá</option>
+                <option value="PY">🇵🇾 Paraguay</option>
+                <option value="PE">🇵🇪 Perú</option>
+                <option value="PR">🇵🇷 Puerto Rico</option>
+                <option value="UY">🇺🇾 Uruguay</option>
+                <option value="VE">🇻🇪 Venezuela</option>
+                <option value="ES">🇪🇸 España</option>
+                <option value="OTHER">🌎 Otro</option>
+              </select>
+            </div>
+            <div class="field-error" id="countryError">Selecciona tu país</div>
+          </div>
+
+          <!-- Contraseña -->
+          <div class="field-group">
+            <label for="password">Contraseña <span class="required">*</span></label>
+            <div class="input-wrap">
+              <span class="icon">🔒</span>
+              <input type="password" id="password" name="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password" />
+              <button type="button" class="toggle-pw" id="togglePw" title="Mostrar contraseña">👁️</button>
+            </div>
+            <div class="password-strength">
+              <div class="strength-bar" id="bar1"></div>
+              <div class="strength-bar" id="bar2"></div>
+              <div class="strength-bar" id="bar3"></div>
+              <div class="strength-bar" id="bar4"></div>
+            </div>
+            <div class="password-hint" id="pwHint">Usa letras, números y símbolos</div>
+            <div class="field-error" id="passwordError">Mínimo 8 caracteres</div>
+          </div>
+
+          <!-- Confirmar Contraseña -->
+          <div class="field-group">
+            <label for="confirmPassword">Confirmar contraseña <span class="required">*</span></label>
+            <div class="input-wrap">
+              <span class="icon">🔒</span>
+              <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Repite tu contraseña" autocomplete="new-password" />
+              <button type="button" class="toggle-pw" id="toggleConfirmPw" title="Mostrar contraseña">👁️</button>
+            </div>
+            <div class="field-error" id="confirmPasswordError">Las contraseñas no coinciden</div>
+          </div>
+
+          <!-- Juegos favoritos -->
+          <div class="field-group">
+            <div class="games-label">🎮 Juegos favoritos (elige los que juegas)</div>
+            <div class="games-grid" id="gamesGrid">
+              <div class="game-chip" data-game="FC26"><span class="gicon">⚽</span><span class="gname">FC 26</span></div>
+              <div class="game-chip" data-game="LOL"><span class="gicon">⚔️</span><span class="gname">LoL</span></div>
+              <div class="game-chip" data-game="Valorant"><span class="gicon">🎯</span><span class="gname">Valorant</span></div>
+              <div class="game-chip" data-game="Fortnite"><span class="gicon">🔫</span><span class="gname">Fortnite</span></div>
+              <div class="game-chip" data-game="JustDance"><span class="gicon">💃</span><span class="gname">Just Dance</span></div>
+              <div class="game-chip" data-game="F1"><span class="gicon">🏎️</span><span class="gname">F1</span></div>
+              <div class="game-chip" data-game="FreeFire"><span class="gicon">🔥</span><span class="gname">Free Fire</span></div>
+              <div class="game-chip" data-game="PUBGMobile"><span class="gicon">📱</span><span class="gname">PUBG</span></div>
+            </div>
+          </div>
+
+          <!-- Discord (opcional) -->
+          <div class="field-group">
+            <label for="discordTag">Discord (opcional)</label>
+            <div class="input-wrap">
+              <span class="icon" style="font-size:0.85rem;">💬</span>
+              <input type="text" id="discordTag" name="discordTag" placeholder="ej: Usuario#1234 o @usuario" autocomplete="off" />
+            </div>
+          </div>
+
+          <!-- Términos -->
+          <div class="terms-row">
+            <input type="checkbox" id="terms" name="terms" />
+            <label for="terms">
+              Acepto los <a href="#">Términos de uso</a> y la <a href="#">Política de privacidad</a> de Arena Versus. Soy mayor de 13 años.
+            </label>
+          </div>
+          <div class="field-error" id="termsError" style="margin-top:-0.75rem; margin-bottom:1rem;">Debes aceptar los términos</div>
+
+          <!-- BOTÓN SUBMIT -->
+          <button type="submit" class="btn-submit" id="submitBtn">
+            <span class="btn-text">⚡ CREAR MI CUENTA GRATIS</span>
+            <div class="spinner"></div>
+          </button>
+
+        </form>
+
+        <!-- SUCCESS STATE -->
+        <div class="success-state" id="successState">
+          <span class="checkmark">✅</span>
+          <h2>¡Cuenta <span style="background:linear-gradient(135deg,#ea3935,#ec622b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">creada!</span></h2>
+          <p>Enviamos un correo de confirmación a<br>
+          <span class="email-highlight" id="confirmedEmail"></span><br><br>
+          Revisa tu bandeja de entrada (y la carpeta de spam) y haz clic en el enlace para activar tu cuenta.</p>
+          <br>
+          <a href="login.html" style="display:inline-block;margin-top:0.5rem;padding:0.75rem 2rem;background:linear-gradient(135deg,#ea3935,#ec622b);color:#fff;text-decoration:none;border-radius:10px;font-weight:800;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.08em;">Ir a Iniciar Sesión →</a>
+        </div>
+
+        <div class="divider">o</div>
+        <div class="login-link">
+          ¿Ya tienes cuenta? <a href="login.html">Inicia sesión aquí →</a>
+        </div>
+
+      </div><!-- /form-card -->
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SUPABASE SDK (via CDN)
+  ══════════════════════════════════════ -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    // ══════════════════════════════════════
+    //  ⚙️ CONFIGURACIÓN — REEMPLAZA ESTOS VALORES
+    //  con los de tu proyecto en Supabase
+    // ══════════════════════════════════════
+    const SUPABASE_URL = 'https://ambmqayzxqylztbylnkq.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtYm1xYXl6eHF5bHp0YnlsbmtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTE4NjMsImV4cCI6MjA4OTI2Nzg2M30.GC8ZveqhZ_SYb5gfV2sN_sTdPQuud4JSuIZuZ5h-mAU';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ── Elementos del DOM ──
+    const form = document.getElementById('registerForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const successState = document.getElementById('successState');
+    const globalError = document.getElementById('globalError');
+    const globalErrorMsg = document.getElementById('globalErrorMsg');
+
+    // ── Toggle contraseña ──
+    document.getElementById('togglePw').addEventListener('click', () => {
+      const pw = document.getElementById('password');
+      pw.type = pw.type === 'password' ? 'text' : 'password';
+    });
+    document.getElementById('toggleConfirmPw').addEventListener('click', () => {
+      const pw = document.getElementById('confirmPassword');
+      pw.type = pw.type === 'password' ? 'text' : 'password';
+    });
+
+    // ── Indicador de fuerza de contraseña ──
+    document.getElementById('password').addEventListener('input', function() {
+      const val = this.value;
+      const bars = [document.getElementById('bar1'), document.getElementById('bar2'),
+                    document.getElementById('bar3'), document.getElementById('bar4')];
+      const hint = document.getElementById('pwHint');
+      bars.forEach(b => { b.className = 'strength-bar'; });
+
+      let strength = 0;
+      if (val.length >= 8) strength++;
+      if (/[A-Z]/.test(val)) strength++;
+      if (/[0-9]/.test(val)) strength++;
+      if (/[^A-Za-z0-9]/.test(val)) strength++;
+
+      const labels = ['', 'Débil', 'Regular', 'Buena', '¡Excelente!'];
+      const classes = ['', 'weak', 'weak', 'medium', 'strong'];
+      hint.textContent = val ? labels[strength] : 'Usa letras, números y símbolos';
+
+      for (let i = 0; i < strength; i++) {
+        bars[i].classList.add(classes[strength]);
+      }
+    });
+
+    // ── Selección de juegos ──
+    const selectedGames = new Set();
+    document.querySelectorAll('.game-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const game = chip.dataset.game;
+        if (selectedGames.has(game)) {
+          selectedGames.delete(game);
+          chip.classList.remove('selected');
+        } else {
+          selectedGames.add(game);
+          chip.classList.add('selected');
+        }
+      });
+    });
+
+    // ── Validación de campos ──
+    function showError(fieldId, errorId) {
+      const field = document.getElementById(fieldId);
+      const error = document.getElementById(errorId);
+      if (field) field.classList.add('error');
+      if (error) error.classList.add('show');
+    }
+    function clearError(fieldId, errorId) {
+      const field = document.getElementById(fieldId);
+      const error = document.getElementById(errorId);
+      if (field) field.classList.remove('error');
+      if (error) error.classList.remove('show');
+    }
+
+    // Limpiar errores al escribir
+    ['firstName','lastName','username','email','country','password','confirmPassword'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', () => clearError(id, id+'Error'));
+    });
+
+    function validateForm() {
+      let valid = true;
+      const v = {
+        firstName: document.getElementById('firstName').value.trim(),
+        lastName: document.getElementById('lastName').value.trim(),
+        username: document.getElementById('username').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        country: document.getElementById('country').value,
+        password: document.getElementById('password').value,
+        confirmPassword: document.getElementById('confirmPassword').value,
+        terms: document.getElementById('terms').checked,
+      };
+
+      if (!v.firstName) { showError('firstName','firstNameError'); valid = false; }
+      if (!v.lastName) { showError('lastName','lastNameError'); valid = false; }
+      if (!v.username || v.username.length < 3 || /\s/.test(v.username)) { showError('username','usernameError'); valid = false; }
+      if (!v.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email)) { showError('email','emailError'); valid = false; }
+      if (!v.country) { showError('country','countryError'); valid = false; }
+      if (!v.password || v.password.length < 8) { showError('password','passwordError'); valid = false; }
+      if (v.password !== v.confirmPassword) { showError('confirmPassword','confirmPasswordError'); valid = false; }
+      if (!v.terms) { showError('terms','termsError'); valid = false; }
+
+      return valid ? v : null;
+    }
+
+    // ── ENVÍO DEL FORMULARIO ──
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      globalError.classList.remove('show');
+
+      const data = validateForm();
+      if (!data) return;
+
+      // Estado: cargando
+      submitBtn.classList.add('loading');
+      submitBtn.disabled = true;
+
+      try {
+        // 1. Crear usuario en Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: data.email,
+          password: data.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/login.html`,
+            data: {
+              full_name: `${data.firstName} ${data.lastName}`,
+              username: data.username,
+            }
+          }
+        });
+
+        if (authError) throw authError;
+
+        // 2. Crear perfil en la tabla profiles
+        if (authData.user) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: authData.user.id,
+              username: data.username,
+              full_name: `${data.firstName} ${data.lastName}`,
+              country: data.country,
+              discord_tag: document.getElementById('discordTag').value.trim() || null,
+            });
+
+          if (profileError && profileError.code !== '23505') {
+            console.warn('Profile insert warning:', profileError.message);
+          }
+
+          // 3. Guardar juegos favoritos
+          if (selectedGames.size > 0) {
+            const gamesData = Array.from(selectedGames).map(game => ({
+              player_id: authData.user.id,
+              game_name: game,
+            }));
+            await supabase.from('player_games').insert(gamesData);
+          }
+        }
+
+        // 4. Mostrar éxito
+        document.getElementById('confirmedEmail').textContent = data.email;
+        form.style.display = 'none';
+        successState.style.display = 'block';
+
+      } catch (err) {
+        let msg = 'Ocurrió un error. Intenta de nuevo.';
+        if (err.message) {
+          if (err.message.includes('already registered') || err.message.includes('already exists')) {
+            msg = 'Este correo ya está registrado. ¿Ya tienes cuenta?';
+          } else if (err.message.includes('Password')) {
+            msg = 'La contraseña no es válida. Usa mínimo 8 caracteres.';
+          } else if (err.message.includes('Unable to validate email')) {
+            msg = 'Correo electrónico inválido. Verifica el formato.';
+          } else if (err.message.includes('Network') || err.message.includes('fetch')) {
+            msg = 'Error de conexión. Verifica tu internet e intenta de nuevo.';
+          } else {
+            msg = err.message;
+          }
+        }
+        globalErrorMsg.textContent = msg;
+        globalError.classList.add('show');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } finally {
+        submitBtn.classList.remove('loading');
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
