@@ -1,484 +1,835 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mi Perfil — Arena Versus</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --negro: #1c1c1c; --rojo: #ea3935; --naranja: #ec622b;
-      --gris: #c7c7c5; --gris-claro: #eaeaea;
-      --superficie: #242424; --superficie2: #2a2a2a; --borde: #2e2e2e;
-      --grad: linear-gradient(135deg, var(--rojo), var(--naranja));
+      --black:      #111111;
+      --black2:     #1c1c1c;
+      --black3:     #242424;
+      --black4:     #2e2e2e;
+      --red:        #ea3935;
+      --orange:     #ec622b;
+      --gradient:   linear-gradient(135deg,#ea3935 0%,#ec622b 100%);
+      --gray:       #c7c7c5;
+      --gray2:      #888886;
+      --light:      #eaeaea;
+      --white:      #ffffff;
+      --green:      #22c55e;
+      --blue:       #3b82f6;
+      --yellow:     #eab308;
+      --font:       'Inter Tight', sans-serif;
+      --radius:     8px;
+      --radius-lg:  12px;
+      --border:     1px solid rgba(255,255,255,0.07);
+      --border-red: 1px solid rgba(234,57,53,0.3);
+      --transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
     }
-    html, body {
-      min-height: 100%; font-family: 'Inter Tight', sans-serif;
-      background: var(--negro); color: var(--gris-claro);
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html,body { min-height:100%; font-family:var(--font); background:var(--black); color:var(--gray); }
+    a { text-decoration:none; color:inherit; }
+    input,select,textarea,button { font-family:var(--font); }
+
+    /* GRAIN */
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:9999;
+      opacity:0.03;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size:200px 200px;
     }
 
-    /* NAV */
-    nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 2rem; height: 64px;
-      background: rgba(28,28,28,0.92); backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--borde);
+    /* ── LOADING ── */
+    .loader {
+      position:fixed; inset:0; z-index:8000;
+      background:var(--black); display:flex; align-items:center; justify-content:center;
+      flex-direction:column; gap:16px; transition:opacity 0.4s;
     }
-    .nav-logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
-    .nav-logo svg { width: 36px; height: 36px; }
-    .nav-logo span { font-size: 1rem; font-weight: 800; color: var(--gris-claro); letter-spacing: 0.05em; }
-    .nav-right { display: flex; align-items: center; gap: 1rem; }
-    .nav-username { color: var(--gris); font-size: 0.875rem; font-weight: 600; }
-    .nav-username span { color: var(--rojo); }
+    .loader.hide { opacity:0; pointer-events:none; }
+    .loader-ring { width:40px; height:40px; border:3px solid rgba(234,57,53,0.2); border-top-color:var(--red); border-radius:50%; animation:spin 0.7s linear infinite; }
+    .loader p { font-size:0.8rem; color:var(--gray2); letter-spacing:0.1em; text-transform:uppercase; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      position:fixed; top:0; left:0; bottom:0; width:240px;
+      background:var(--black2); border-right:var(--border);
+      display:flex; flex-direction:column; z-index:200;
+      transition:transform 0.3s ease;
+    }
+    .sidebar-head {
+      padding:20px; border-bottom:var(--border);
+      display:flex; align-items:center; gap:10px;
+    }
+    .sidebar-logo-text { font-size:0.9rem; font-weight:900; color:var(--white); text-transform:uppercase; letter-spacing:0.1em; }
+    .sidebar-logo-sub  { font-size:0.65rem; color:var(--red); font-weight:700; letter-spacing:0.12em; text-transform:uppercase; }
+
+    /* Avatar en sidebar */
+    .sidebar-avatar-wrap { padding:20px; display:flex; align-items:center; gap:12px; border-bottom:var(--border); }
+    .sidebar-avatar {
+      width:44px; height:44px; border-radius:50%;
+      background:var(--gradient); display:flex; align-items:center; justify-content:center;
+      font-size:1.1rem; font-weight:900; color:#fff; text-transform:uppercase;
+      flex-shrink:0; position:relative; border:2px solid rgba(234,57,53,0.3);
+    }
+    .sidebar-avatar-dot {
+      position:absolute; bottom:0; right:0; width:12px; height:12px;
+      background:var(--green); border:2px solid var(--black2); border-radius:50%;
+    }
+    .sidebar-user-name  { font-size:0.9rem; font-weight:700; color:var(--white); }
+    .sidebar-user-email { font-size:0.72rem; color:var(--gray2); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:130px; }
+
+    /* Nav items */
+    .sidebar-nav { padding:12px; flex:1; display:flex; flex-direction:column; gap:2px; }
+    .sidebar-section-label { font-size:0.65rem; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:var(--gray2); padding:8px 10px 4px; }
+    .nav-item {
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px; border-radius:var(--radius);
+      font-size:0.83rem; font-weight:600; color:var(--gray2);
+      cursor:pointer; transition:var(--transition); border:1px solid transparent;
+      background:none;
+    }
+    .nav-item:hover { background:rgba(255,255,255,0.04); color:var(--light); }
+    .nav-item.active { background:rgba(234,57,53,0.1); color:var(--white); border-color:rgba(234,57,53,0.2); }
+    .nav-item svg { flex-shrink:0; opacity:0.7; }
+    .nav-item.active svg { opacity:1; }
+    .nav-divider { height:1px; background:rgba(255,255,255,0.05); margin:6px 0; }
+    .nav-badge { margin-left:auto; background:rgba(234,57,53,0.15); color:var(--red); font-size:0.65rem; font-weight:700; padding:1px 7px; border-radius:100px; }
+
+    .sidebar-footer { padding:12px; border-top:var(--border); }
     .btn-logout {
-      background: rgba(234,57,53,0.1); border: 1px solid rgba(234,57,53,0.3);
-      color: var(--rojo); padding: 0.4rem 0.9rem; border-radius: 8px;
-      font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: inherit;
-      text-transform: uppercase; letter-spacing: 0.06em; transition: all 0.2s;
+      width:100%; display:flex; align-items:center; gap:8px; justify-content:center;
+      padding:10px; border-radius:var(--radius); border:var(--border-red);
+      background:rgba(234,57,53,0.07); color:var(--red);
+      font-size:0.78rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+      cursor:pointer; transition:var(--transition);
     }
-    .btn-logout:hover { background: rgba(234,57,53,0.2); }
+    .btn-logout:hover { background:rgba(234,57,53,0.15); }
 
-    /* LAYOUT */
-    .page { padding: 84px 1.5rem 3rem; max-width: 1100px; margin: 0 auto; }
+    /* ── MAIN ── */
+    .main { margin-left:240px; min-height:100vh; display:flex; flex-direction:column; }
 
-    /* HERO PERFIL */
+    /* Topbar */
+    .topbar {
+      background:rgba(17,17,17,0.9); backdrop-filter:blur(12px);
+      border-bottom:var(--border); height:64px;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 32px; position:sticky; top:0; z-index:100;
+    }
+    .topbar-title { font-size:1rem; font-weight:800; color:var(--white); }
+    .topbar-title span { color:var(--red); }
+    .topbar-right { display:flex; align-items:center; gap:12px; }
+    .topbar-user { font-size:0.82rem; color:var(--gray2); }
+    .topbar-user strong { color:var(--white); }
+    .topbar-home { color:var(--gray2); font-size:0.78rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; padding:7px 14px; border-radius:6px; border:var(--border); transition:var(--transition); }
+    .topbar-home:hover { color:var(--white); border-color:rgba(255,255,255,0.2); }
+
+    /* Content */
+    .content { padding:32px; flex:1; }
+    .panel { display:none; }
+    .panel.active { display:block; }
+
+    /* ── STATS CARDS ── */
+    .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
+    .stat-card {
+      background:var(--black2); border:var(--border); border-radius:var(--radius-lg);
+      padding:20px 22px; position:relative; overflow:hidden; transition:var(--transition);
+    }
+    .stat-card:hover { border-color:rgba(234,57,53,0.25); }
+    .stat-card::after {
+      content:''; position:absolute; top:0; left:0; right:0; height:2px;
+      background:var(--gradient); transform:scaleX(0); transform-origin:left;
+      transition:transform 0.3s ease;
+    }
+    .stat-card:hover::after { transform:scaleX(1); }
+    .stat-card-icon { font-size:1.6rem; margin-bottom:10px; display:block; }
+    .stat-card-val  { font-size:2rem; font-weight:900; color:var(--white); line-height:1; letter-spacing:-0.02em; }
+    .stat-card-val.gradient { background:var(--gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .stat-card-label{ font-size:0.72rem; font-weight:700; color:var(--gray2); text-transform:uppercase; letter-spacing:0.1em; margin-top:6px; }
+
+    /* ── PERFIL HERO ── */
     .profile-hero {
-      background: var(--superficie); border: 1px solid var(--borde);
-      border-radius: 20px; padding: 2rem; margin-bottom: 1.5rem;
-      position: relative; overflow: hidden;
-      display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;
+      background:var(--black2); border:var(--border); border-radius:var(--radius-lg);
+      padding:28px; margin-bottom:24px; position:relative; overflow:hidden;
+      display:flex; align-items:center; gap:24px; flex-wrap:wrap;
     }
-    .profile-hero::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-      background: var(--grad);
-    }
+    .profile-hero::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--gradient); }
     .profile-hero::after {
-      content: ''; position: absolute; top: -50px; right: -50px;
-      width: 250px; height: 250px; border-radius: 50%;
-      background: radial-gradient(circle, rgba(234,57,53,0.1) 0%, transparent 70%);
-      pointer-events: none;
+      content:''; position:absolute; top:-80px; right:-80px;
+      width:300px; height:300px; border-radius:50%;
+      background:radial-gradient(circle,rgba(234,57,53,0.08) 0%,transparent 70%);
+      pointer-events:none;
+    }
+    .profile-avatar {
+      width:88px; height:88px; border-radius:50%;
+      background:var(--gradient); display:flex; align-items:center; justify-content:center;
+      font-size:2.2rem; font-weight:900; color:#fff; flex-shrink:0;
+      border:3px solid rgba(234,57,53,0.25); text-transform:uppercase; position:relative;
+    }
+    .profile-avatar-dot { position:absolute; bottom:2px; right:2px; width:18px; height:18px; background:var(--green); border:2px solid var(--black2); border-radius:50%; }
+    .profile-info { flex:1; min-width:180px; }
+    .profile-tag {
+      display:inline-flex; align-items:center; gap:6px;
+      background:rgba(234,57,53,0.1); border:var(--border-red);
+      color:var(--red); font-size:0.68rem; font-weight:700;
+      letter-spacing:0.12em; text-transform:uppercase;
+      padding:4px 12px; border-radius:4px; margin-bottom:10px;
+    }
+    .profile-tag::before { content:''; width:5px; height:5px; border-radius:50%; background:var(--red); animation:blink 2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .profile-username { font-size:1.8rem; font-weight:900; text-transform:uppercase; letter-spacing:0.02em; color:var(--white); line-height:1.1; margin-bottom:4px; }
+    .profile-username span { background:var(--gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .profile-fullname { font-size:0.95rem; color:var(--gray); margin-bottom:10px; }
+    .profile-meta { display:flex; flex-wrap:wrap; gap:16px; }
+    .profile-meta-item { display:flex; align-items:center; gap:6px; font-size:0.82rem; color:var(--gray2); }
+    .profile-meta-item strong { color:var(--gray); font-weight:600; }
+
+    /* ── GRID CONTENIDO ── */
+    .content-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    .content-grid.full { grid-template-columns:1fr; }
+    .card { background:var(--black2); border:var(--border); border-radius:var(--radius-lg); padding:24px; }
+    .card.full-col { grid-column:1/-1; }
+    .card-title {
+      font-size:0.72rem; font-weight:800; color:var(--red);
+      text-transform:uppercase; letter-spacing:0.12em;
+      margin-bottom:18px; display:flex; align-items:center; gap:8px;
     }
 
-    .avatar-wrap { position: relative; }
-    .avatar {
-      width: 90px; height: 90px; border-radius: 50%;
-      background: var(--grad); display: flex; align-items: center;
-      justify-content: center; font-size: 2.2rem; font-weight: 900;
-      color: #fff; border: 3px solid rgba(234,57,53,0.3);
-      text-transform: uppercase; user-select: none;
-      flex-shrink: 0;
+    /* Games */
+    .games-wrap { display:flex; flex-wrap:wrap; gap:8px; }
+    .game-chip {
+      display:inline-flex; align-items:center; gap:6px;
+      background:rgba(255,255,255,0.04); border:var(--border);
+      border-radius:var(--radius); padding:7px 14px;
+      font-size:0.8rem; font-weight:600; color:var(--gray); transition:var(--transition);
     }
-    .avatar-badge {
-      position: absolute; bottom: -2px; right: -2px;
-      width: 24px; height: 24px; border-radius: 50%;
-      background: #22c55e; border: 2px solid var(--negro);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.65rem;
-    }
+    .game-chip.active { border-color:rgba(234,57,53,0.3); background:rgba(234,57,53,0.07); color:var(--light); }
 
-    .profile-info { flex: 1; min-width: 200px; }
-    .profile-info .tag {
-      display: inline-flex; align-items: center; gap: 0.3rem;
-      background: rgba(234,57,53,0.1); border: 1px solid rgba(234,57,53,0.25);
-      color: var(--rojo); padding: 0.2rem 0.65rem; border-radius: 12px;
-      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.07em; margin-bottom: 0.6rem;
+    /* ── FORM EDITAR ── */
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .form-full { grid-column:1/-1; }
+    .form-group { display:flex; flex-direction:column; gap:6px; }
+    .form-label { font-size:0.7rem; font-weight:700; color:var(--gray2); text-transform:uppercase; letter-spacing:0.1em; }
+    .form-label span { color:var(--red); }
+    .form-input, .form-select, .form-textarea {
+      background:var(--black3); border:var(--border); border-radius:var(--radius);
+      padding:10px 14px; color:var(--light); font-size:0.88rem;
+      outline:none; transition:var(--transition); width:100%;
     }
-    .profile-info h1 {
-      font-size: 1.8rem; font-weight: 900; text-transform: uppercase;
-      letter-spacing: 0.03em; line-height: 1.1; margin-bottom: 0.3rem;
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color:rgba(234,57,53,0.5); box-shadow:0 0 0 3px rgba(234,57,53,0.08);
     }
-    .profile-info h1 span {
-      background: var(--grad); -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .profile-info .full-name { color: var(--gris); font-size: 0.95rem; font-weight: 500; }
-    .profile-info .meta {
-      display: flex; gap: 1rem; margin-top: 0.75rem; flex-wrap: wrap;
-    }
-    .meta-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; color: #888; }
-    .meta-item strong { color: var(--gris); font-weight: 600; }
-
-    .profile-stats {
-      display: flex; gap: 1rem; flex-direction: column; align-items: flex-end;
-    }
-    @media (max-width: 600px) { .profile-stats { flex-direction: row; align-items: flex-start; } }
-
-    .stat-pill {
-      background: rgba(255,255,255,0.04); border: 1px solid var(--borde);
-      border-radius: 12px; padding: 0.6rem 1.2rem; text-align: center;
-    }
-    .stat-pill .sval { font-size: 1.4rem; font-weight: 900; color: var(--rojo); }
-    .stat-pill .slabel { font-size: 0.7rem; color: var(--gris); text-transform: uppercase; letter-spacing: 0.07em; }
-
-    /* GRID DE SECCIONES */
-    .dashboard-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
-    }
-    @media (max-width: 700px) { .dashboard-grid { grid-template-columns: 1fr; } }
-
-    .section-card {
-      background: var(--superficie); border: 1px solid var(--borde);
-      border-radius: 16px; padding: 1.5rem;
-    }
-    .section-card.full-width { grid-column: 1 / -1; }
-    .section-title {
-      font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.1em; color: var(--rojo); margin-bottom: 1.25rem;
-      display: flex; align-items: center; gap: 0.5rem;
-    }
-
-    /* JUEGOS */
-    .games-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-    .game-tag {
-      background: rgba(255,255,255,0.05); border: 1px solid var(--borde);
-      border-radius: 8px; padding: 0.4rem 0.75rem;
-      font-size: 0.78rem; font-weight: 600; color: var(--gris);
-      display: flex; align-items: center; gap: 0.35rem;
-    }
-    .game-tag.active { border-color: rgba(234,57,53,0.35); background: rgba(234,57,53,0.08); color: var(--gris-claro); }
-    .no-games { color: #555; font-size: 0.875rem; }
-
-    /* EDITAR PERFIL */
-    .edit-field { margin-bottom: 1rem; }
-    .edit-field label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--gris); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
-    .edit-field input, .edit-field select, .edit-field textarea {
-      width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--borde);
-      border-radius: 8px; padding: 0.65rem 0.85rem; color: var(--gris-claro);
-      font-family: 'Inter Tight', sans-serif; font-size: 0.875rem; outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s; -webkit-appearance: none;
-    }
-    .edit-field input:focus, .edit-field select:focus, .edit-field textarea:focus {
-      border-color: var(--rojo); box-shadow: 0 0 0 3px rgba(234,57,53,0.12);
-    }
-    .edit-field textarea { resize: vertical; min-height: 80px; }
-    .edit-field input::placeholder, .edit-field textarea::placeholder { color: #555; }
-    .edit-field select option { background: var(--negro); }
-
+    .form-input::placeholder { color:rgba(199,199,197,0.3); }
+    .form-select option { background:var(--black2); }
+    .form-textarea { resize:vertical; min-height:80px; line-height:1.6; }
     .btn-save {
-      background: var(--grad); border: none; border-radius: 8px;
-      color: #fff; padding: 0.65rem 1.5rem; font-family: inherit;
-      font-size: 0.85rem; font-weight: 800; text-transform: uppercase;
-      letter-spacing: 0.07em; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+      background:var(--gradient); border:none; border-radius:var(--radius);
+      color:#fff; padding:11px 28px; font-family:var(--font);
+      font-size:0.82rem; font-weight:800; text-transform:uppercase;
+      letter-spacing:0.07em; cursor:pointer; transition:var(--transition);
     }
-    .btn-save:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(234,57,53,0.35); }
-    .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
-    .save-feedback { display: inline-block; margin-left: 0.75rem; font-size: 0.82rem; color: #22c55e; opacity: 0; transition: opacity 0.3s; }
-    .save-feedback.show { opacity: 1; }
+    .btn-save:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(234,57,53,0.35); }
+    .btn-save:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+    .save-ok { display:inline-flex; align-items:center; gap:6px; font-size:0.82rem; color:var(--green); margin-left:12px; opacity:0; transition:opacity 0.3s; }
+    .save-ok.show { opacity:1; }
 
-    /* TORNEOS */
-    .empty-state { text-align: center; padding: 2rem 1rem; }
-    .empty-state .emoji { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
-    .empty-state p { color: #666; font-size: 0.875rem; margin-bottom: 1rem; }
-    .btn-outline {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      background: rgba(234,57,53,0.08); border: 1px solid rgba(234,57,53,0.3);
-      color: var(--rojo); padding: 0.55rem 1.2rem; border-radius: 8px;
-      font-size: 0.82rem; font-weight: 700; text-decoration: none;
-      text-transform: uppercase; letter-spacing: 0.07em; transition: all 0.2s;
+    /* ── TORNEOS INSCRITOS ── */
+    .mis-torneos-list { display:flex; flex-direction:column; gap:12px; }
+    .mi-torneo-card {
+      background:var(--black3); border:var(--border); border-radius:var(--radius-lg);
+      padding:16px 18px; display:flex; align-items:center; gap:16px;
+      transition:var(--transition); position:relative; overflow:hidden;
     }
-    .btn-outline:hover { background: rgba(234,57,53,0.15); }
+    .mi-torneo-card:hover { border-color:rgba(234,57,53,0.25); }
+    .mi-torneo-cover {
+      width:52px; height:52px; border-radius:var(--radius); flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; font-size:1.6rem;
+    }
+    .mi-torneo-info { flex:1; min-width:0; }
+    .mi-torneo-game { font-size:0.68rem; font-weight:700; color:var(--red); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:3px; }
+    .mi-torneo-title { font-size:0.95rem; font-weight:700; color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mi-torneo-meta { display:flex; gap:12px; margin-top:5px; }
+    .mi-torneo-meta span { font-size:0.75rem; color:var(--gray2); display:flex; align-items:center; gap:4px; }
+    .mi-torneo-status { flex-shrink:0; }
+    .status-pill {
+      font-size:0.65rem; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;
+      padding:4px 10px; border-radius:100px;
+    }
+    .status-open       { background:rgba(34,197,94,0.12);  color:#4ade80; border:1px solid rgba(34,197,94,0.25); }
+    .status-upcoming   { background:rgba(59,130,246,0.12);  color:#60a5fa; border:1px solid rgba(59,130,246,0.25); }
+    .status-in_progress{ background:rgba(234,57,53,0.12);   color:#f87171; border:1px solid rgba(234,57,53,0.25); }
+    .status-finished   { background:rgba(136,136,134,0.12); color:var(--gray2); border:1px solid rgba(255,255,255,0.08); }
 
-    /* CARGANDO */
-    .loading-overlay {
-      position: fixed; inset: 0; z-index: 999;
-      background: var(--negro); display: flex; align-items: center; justify-content: center;
-      flex-direction: column; gap: 1.5rem;
-      transition: opacity 0.4s;
+    /* ── EMPTY STATE ── */
+    .empty-box { text-align:center; padding:40px 20px; }
+    .empty-box .e-icon { font-size:2.5rem; opacity:0.3; margin-bottom:12px; display:block; }
+    .empty-box p { color:var(--gray2); font-size:0.88rem; margin-bottom:16px; }
+    .btn-link {
+      display:inline-flex; align-items:center; gap:6px;
+      background:rgba(234,57,53,0.08); border:var(--border-red);
+      color:var(--red); padding:9px 20px; border-radius:var(--radius);
+      font-size:0.78rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+      transition:var(--transition);
     }
-    .loading-overlay.hide { opacity: 0; pointer-events: none; }
-    .loading-logo { font-size: 3rem; animation: pulse 1.5s ease-in-out infinite; }
-    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-    .loading-text { font-size: 0.875rem; color: var(--gris); text-transform: uppercase; letter-spacing: 0.12em; }
+    .btn-link:hover { background:rgba(234,57,53,0.16); }
+
+    /* ── TOAST ── */
+    .toast-container { position:fixed; bottom:24px; right:24px; z-index:9000; display:flex; flex-direction:column; gap:8px; }
+    .toast { display:flex; align-items:center; gap:10px; background:var(--black2); border:var(--border); border-radius:var(--radius-lg); padding:13px 16px; min-width:260px; box-shadow:0 16px 40px rgba(0,0,0,0.4); animation:toast-in 0.3s ease; }
+    @keyframes toast-in { from{opacity:0;transform:translateX(16px)} to{opacity:1;transform:translateX(0)} }
+    .toast.ok  { border-left:3px solid var(--green); }
+    .toast.err { border-left:3px solid var(--red); }
+    .toast span { font-size:0.83rem; font-weight:600; color:var(--white); }
+
+    /* ── HAMBURGER (mobile) ── */
+    .hamburger { display:none; background:none; border:none; cursor:pointer; padding:8px; color:var(--gray); }
+    .sidebar-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:199; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:1000px) {
+      .stats-row { grid-template-columns:repeat(2,1fr); }
+    }
+    @media (max-width:768px) {
+      .sidebar { transform:translateX(-100%); }
+      .sidebar.open { transform:translateX(0); }
+      .sidebar-backdrop.open { display:block; }
+      .main { margin-left:0; }
+      .hamburger { display:flex; }
+      .content { padding:20px 16px; }
+      .topbar { padding:0 16px; }
+      .content-grid { grid-template-columns:1fr; }
+      .form-grid { grid-template-columns:1fr; }
+      .form-full { grid-column:1; }
+    }
+    @media (max-width:480px) {
+      .stats-row { grid-template-columns:1fr 1fr; }
+      .profile-hero { flex-direction:column; align-items:flex-start; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- LOADING OVERLAY -->
-  <div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-logo">⚡</div>
-    <div class="loading-text">Cargando tu perfil...</div>
+<!-- LOADER -->
+<div class="loader" id="loader">
+  <div class="loader-ring"></div>
+  <p>Cargando perfil...</p>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- SIDEBAR BACKDROP (mobile) -->
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <!-- Logo -->
+  <div class="sidebar-head">
+    <a href="index.html">
+      <svg width="30" height="30" viewBox="0 0 38 38" fill="none">
+        <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ea3935"/><stop offset="100%" stop-color="#ec622b"/></linearGradient></defs>
+        <path d="M19 2L4 9v10c0 8.5 6.4 16.4 15 18.5C28.6 35.4 35 27.5 35 19V9L19 2z" fill="url(#sg)" opacity="0.15"/>
+        <path d="M19 2L4 9v10c0 8.5 6.4 16.4 15 18.5C28.6 35.4 35 27.5 35 19V9L19 2z" fill="none" stroke="url(#sg)" stroke-width="1.5"/>
+        <path d="M10 26 L15 12 L19 22 M12.5 21 L17.5 21" stroke="url(#sg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M20 12 L24 22 L28 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
+      </svg>
+    </a>
+    <div>
+      <div class="sidebar-logo-text">Arena Versus</div>
+      <div class="sidebar-logo-sub">Mi Perfil</div>
+    </div>
   </div>
 
-  <!-- NAV -->
-  <nav>
-    <a class="nav-logo" href="index.html">
-      <svg viewBox="0 0 40 45" fill="none">
-        <defs>
-          <linearGradient id="dbLogo" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#ea3935"/>
-            <stop offset="100%" stop-color="#ec622b"/>
-          </linearGradient>
-        </defs>
-        <path d="M20 2L38 11V28C38 36 29 42 20 44C11 42 2 36 2 28V11L20 2Z" fill="url(#dbLogo)" opacity="0.15" stroke="url(#dbLogo)" stroke-width="1.5"/>
-        <path d="M12 30L20 12L28 30" stroke="url(#dbLogo)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M14.5 24H25.5" stroke="url(#dbLogo)" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-      <span>ARENA VERSUS</span>
-    </a>
-    <div class="nav-right">
-      <span class="nav-username" id="navUsername">👤 <span>Jugador</span></span>
-      <button class="btn-logout" id="logoutBtn">Salir</button>
+  <!-- Avatar rápido -->
+  <div class="sidebar-avatar-wrap">
+    <div class="sidebar-avatar" id="sidebarAvatar">
+      A
+      <div class="sidebar-avatar-dot"></div>
     </div>
+    <div>
+      <div class="sidebar-user-name"  id="sidebarUsername">Cargando...</div>
+      <div class="sidebar-user-email" id="sidebarEmail">—</div>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-label">Jugador</div>
+    <button class="nav-item active" onclick="showPanel('overview')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Resumen
+    </button>
+    <button class="nav-item" onclick="showPanel('torneos')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M17 3H7l-2 7h14l-2-7zM5 10c0 4 3 7 7 7s7-3 7-7"/></svg>
+      Mis Torneos
+      <span class="nav-badge" id="badgeTorneos">0</span>
+    </button>
+    <div class="nav-divider"></div>
+    <div class="sidebar-section-label">Cuenta</div>
+    <button class="nav-item" onclick="showPanel('perfil')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Editar Perfil
+    </button>
+    <a class="nav-item" href="torneos.html">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Ver Torneos
+    </a>
+    <a class="nav-item" href="index.html">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Inicio
+    </a>
   </nav>
 
-  <!-- CONTENIDO -->
-  <div class="page" id="pageContent" style="display:none;">
+  <div class="sidebar-footer">
+    <button class="btn-logout" id="logoutBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Cerrar Sesión
+    </button>
+  </div>
+</aside>
 
-    <!-- HERO PERFIL -->
-    <div class="profile-hero">
-      <div class="avatar-wrap">
-        <div class="avatar" id="avatarEl">?</div>
-        <div class="avatar-badge">✓</div>
-      </div>
-      <div class="profile-info">
-        <div class="tag">🎮 Jugador Arena Versus</div>
-        <h1>@<span id="heroUsername">username</span></h1>
-        <div class="full-name" id="heroFullName">Nombre completo</div>
-        <div class="meta">
-          <div class="meta-item">🌎 <strong id="heroCountry">LATAM</strong></div>
-          <div class="meta-item">📅 Miembro desde <strong id="heroDate">—</strong></div>
-          <div class="meta-item" id="discordMeta" style="display:none;">💬 <strong id="heroDiscord">—</strong></div>
+<!-- MAIN -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="hamburger" onclick="openSidebar()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-title" id="topbarTitle">Resumen <span>del Jugador</span></div>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-user">Hola, <strong id="topbarUsername">—</strong></span>
+      <a href="index.html" class="topbar-home">← Inicio</a>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="pageContent" style="display:none">
+
+    <!-- ══ PANEL: RESUMEN ══ -->
+    <div class="panel active" id="panel-overview">
+
+      <!-- Stats cards -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <span class="stat-card-icon">🏆</span>
+          <div class="stat-card-val gradient" id="statTorneos">—</div>
+          <div class="stat-card-label">Torneos Inscritos</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card-icon">⚡</span>
+          <div class="stat-card-val gradient" id="statActivos">—</div>
+          <div class="stat-card-label">Torneos Activos</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card-icon">🎮</span>
+          <div class="stat-card-val gradient" id="statJuegos">—</div>
+          <div class="stat-card-label">Juegos Favoritos</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card-icon">🌎</span>
+          <div class="stat-card-val" id="statPais" style="font-size:1.3rem">—</div>
+          <div class="stat-card-label">País / Región</div>
         </div>
       </div>
-      <div class="profile-stats">
-        <div class="stat-pill">
-          <div class="sval" id="statTournaments">0</div>
-          <div class="slabel">Torneos</div>
+
+      <!-- Perfil hero -->
+      <div class="profile-hero">
+        <div class="profile-avatar" id="avatarEl">A<div class="profile-avatar-dot"></div></div>
+        <div class="profile-info">
+          <div class="profile-tag">Jugador Arena Versus</div>
+          <div class="profile-username" id="heroUsername">—</div>
+          <div class="profile-fullname" id="heroFullName"></div>
+          <div class="profile-meta">
+            <div class="profile-meta-item">🌍 <strong id="heroCountry">LATAM</strong></div>
+            <div class="profile-meta-item" id="discordMeta" style="display:none">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#5865f2"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.101 18.086.12 18.113.144 18.13a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+              <strong id="heroDiscord"></strong>
+            </div>
+            <div class="profile-meta-item">📅 Desde <strong id="heroDate">—</strong></div>
+          </div>
         </div>
-        <div class="stat-pill">
-          <div class="sval" id="statGames">0</div>
-          <div class="slabel">Juegos</div>
+      </div>
+
+      <!-- Juegos y torneos recientes -->
+      <div class="content-grid">
+        <div class="card">
+          <div class="card-title">🎮 Juegos Favoritos</div>
+          <div class="games-wrap" id="gamesList">
+            <span style="color:var(--gray2);font-size:0.85rem">Cargando...</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📊 Actividad Reciente</div>
+          <div id="actividadList">
+            <span style="color:var(--gray2);font-size:0.85rem">Cargando...</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- GRID -->
-    <div class="dashboard-grid">
-
-      <!-- Mis Juegos -->
-      <div class="section-card">
-        <div class="section-title">🎮 Mis juegos</div>
-        <div class="games-list" id="gamesList">
-          <span class="no-games">Cargando...</span>
+    <!-- ══ PANEL: MIS TORNEOS ══ -->
+    <div class="panel" id="panel-torneos">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+        <div>
+          <h2 style="font-size:1rem;font-weight:800;color:var(--white)">Mis Torneos</h2>
+          <p style="font-size:0.8rem;color:var(--gray2);margin-top:3px">Torneos en los que estás inscrito</p>
         </div>
+        <a href="torneos.html" class="btn-link">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Inscribirme en más
+        </a>
+      </div>
+      <div class="mis-torneos-list" id="misTorneosList">
+        <div style="text-align:center;padding:40px;color:var(--gray2)">Cargando...</div>
+      </div>
+    </div>
+
+    <!-- ══ PANEL: EDITAR PERFIL ══ -->
+    <div class="panel" id="panel-perfil">
+      <div style="margin-bottom:24px">
+        <h2 style="font-size:1rem;font-weight:800;color:var(--white)">Editar Perfil</h2>
+        <p style="font-size:0.8rem;color:var(--gray2);margin-top:3px">Actualiza tu información de jugador</p>
       </div>
 
-      <!-- Próximos Torneos -->
-      <div class="section-card">
-        <div class="section-title">🏆 Mis torneos</div>
-        <div class="empty-state">
-          <span class="emoji">🏆</span>
-          <p>Aún no te has inscrito a ningún torneo.</p>
-          <a href="index.html#torneos" class="btn-outline">Ver torneos disponibles →</a>
-        </div>
-      </div>
-
-      <!-- Editar Perfil (ancho completo) -->
-      <div class="section-card full-width">
-        <div class="section-title">✏️ Editar perfil</div>
+      <div class="card" style="max-width:680px">
         <form id="editForm">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-            <div class="edit-field">
-              <label>Nombre</label>
-              <input type="text" id="editFirstName" placeholder="Tu nombre" />
+          <div class="form-grid" style="margin-bottom:20px">
+            <div class="form-group">
+              <label class="form-label">Nombre <span>*</span></label>
+              <input class="form-input" type="text" id="editFirstName" placeholder="Tu nombre"/>
             </div>
-            <div class="edit-field">
-              <label>Apellido</label>
-              <input type="text" id="editLastName" placeholder="Tu apellido" />
+            <div class="form-group">
+              <label class="form-label">Apellido</label>
+              <input class="form-input" type="text" id="editLastName" placeholder="Tu apellido"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Username <span>*</span></label>
+              <input class="form-input" type="text" id="editUsername" placeholder="tu_username"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">País</label>
+              <select class="form-select" id="editCountry">
+                <option value="AR">🇦🇷 Argentina</option>
+                <option value="BO">🇧🇴 Bolivia</option>
+                <option value="BR">🇧🇷 Brasil</option>
+                <option value="CL">🇨🇱 Chile</option>
+                <option value="CO">🇨🇴 Colombia</option>
+                <option value="CR">🇨🇷 Costa Rica</option>
+                <option value="EC">🇪🇨 Ecuador</option>
+                <option value="MX">🇲🇽 México</option>
+                <option value="PA">🇵🇦 Panamá</option>
+                <option value="PE">🇵🇪 Perú</option>
+                <option value="UY">🇺🇾 Uruguay</option>
+                <option value="VE">🇻🇪 Venezuela</option>
+                <option value="ES">🇪🇸 España</option>
+                <option value="OTHER">🌎 Otro</option>
+              </select>
+            </div>
+            <div class="form-group form-full">
+              <label class="form-label">Discord</label>
+              <input class="form-input" type="text" id="editDiscord" placeholder="Usuario#1234 o @usuario"/>
+            </div>
+            <div class="form-group form-full">
+              <label class="form-label">Bio / Descripción</label>
+              <textarea class="form-textarea" id="editBio" placeholder="Cuéntanos sobre ti como jugador..."></textarea>
             </div>
           </div>
-          <div class="edit-field">
-            <label>Username (nombre de jugador)</label>
-            <input type="text" id="editUsername" placeholder="TuUsername" maxlength="20" />
-          </div>
-          <div class="edit-field">
-            <label>Descripción / Bio</label>
-            <textarea id="editBio" placeholder="Cuéntanos sobre ti como jugador..."></textarea>
-          </div>
-          <div class="edit-field">
-            <label>Discord</label>
-            <input type="text" id="editDiscord" placeholder="Usuario#1234 o @usuario" />
-          </div>
-          <div class="edit-field">
-            <label>País</label>
-            <select id="editCountry">
-              <option value="AR">🇦🇷 Argentina</option>
-              <option value="BO">🇧🇴 Bolivia</option>
-              <option value="BR">🇧🇷 Brasil</option>
-              <option value="CL">🇨🇱 Chile</option>
-              <option value="CO">🇨🇴 Colombia</option>
-              <option value="CR">🇨🇷 Costa Rica</option>
-              <option value="EC">🇪🇨 Ecuador</option>
-              <option value="MX">🇲🇽 México</option>
-              <option value="PA">🇵🇦 Panamá</option>
-              <option value="PE">🇵🇪 Perú</option>
-              <option value="UY">🇺🇾 Uruguay</option>
-              <option value="VE">🇻🇪 Venezuela</option>
-              <option value="ES">🇪🇸 España</option>
-              <option value="OTHER">🌎 Otro</option>
-            </select>
-          </div>
-          <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
             <button type="submit" class="btn-save" id="saveBtn">💾 Guardar cambios</button>
-            <span class="save-feedback" id="saveFeedback">✅ ¡Guardado!</span>
+            <span class="save-ok" id="saveFeedback">✅ ¡Guardado correctamente!</span>
           </div>
         </form>
       </div>
+    </div>
 
-    </div><!-- /grid -->
-  </div><!-- /page -->
+  </div><!-- /pageContent -->
+</main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    // ══════════════════════════════════════
-    //  ⚙️ CONFIGURACIÓN — REEMPLAZA ESTOS VALORES
-    // ══════════════════════════════════════
-    const SUPABASE_URL = 'https://ambmqayzxqylztbylnkq.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtYm1xYXl6eHF5bHp0YnlsbmtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTE4NjMsImV4cCI6MjA4OTI2Nzg2M30.GC8ZveqhZ_SYb5gfV2sN_sTdPQuud4JSuIZuZ5h-mAU';
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  const sb = window.supabase.createClient(
+    'https://ambmqayzxqylztbylnkq.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtYm1xYXl6eHF5bHp0YnlsbmtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTE4NjMsImV4cCI6MjA4OTI2Nzg2M30.GC8ZveqhZ_SYb5gfV2sN_sTdPQuud4JSuIZuZ5h-mAU',
+    { auth: { persistSession: true } }
+  );
 
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // ── Constantes ───────────────────────────────────────
+  const GAMES_MAP = {
+    FC26:'⚽ FC 26', LOL:'⚔️ LoL', Valorant:'🎯 Valorant',
+    Fortnite:'🔫 Fortnite', JustDance:'💃 Just Dance',
+    F1:'🏎️ F1', FreeFire:'🔥 Free Fire', PUBGMobile:'📱 PUBG Mobile',
+    'League of Legends':'⚔️ League of Legends', 'Just Dance':'💃 Just Dance',
+    'Formula 1':'🏎️ F1', 'Free Fire':'🔥 Free Fire', 'PUBG Mobile':'📱 PUBG Mobile',
+    'Call of Duty':'🎖️ CoD', 'Rocket League':'🚀 Rocket League'
+  };
+  const COUNTRIES_MAP = {
+    AR:'🇦🇷 Argentina', BO:'🇧🇴 Bolivia', BR:'🇧🇷 Brasil', CL:'🇨🇱 Chile',
+    CO:'🇨🇴 Colombia', CR:'🇨🇷 Costa Rica', EC:'🇪🇨 Ecuador', MX:'🇲🇽 México',
+    PA:'🇵🇦 Panamá', PE:'🇵🇪 Perú', UY:'🇺🇾 Uruguay', VE:'🇻🇪 Venezuela',
+    ES:'🇪🇸 España', OTHER:'🌎 Otro'
+  };
+  const STATUS_LABELS = { upcoming:'Próximamente', open:'Inscripciones', in_progress:'En Curso', finished:'Finalizado', cancelled:'Cancelado' };
+  const GAME_ICONS   = { 'Valorant':'🎯', 'FC26':'⚽', 'League of Legends':'⚔️', 'Fortnite':'🔫', 'Just Dance':'💃', 'Formula 1':'🏎️', 'Free Fire':'🔥', 'PUBG Mobile':'📱', 'Call of Duty':'🎖️', 'Rocket League':'🚀' };
+  const GAME_COVERS  = {
+    'Valorant':'background:linear-gradient(135deg,#ff4655,#1a0a0a)',
+    'FC26':'background:linear-gradient(135deg,#00d2ff,#002244)',
+    'League of Legends':'background:linear-gradient(135deg,#c89b3c,#0a1628)',
+    'Fortnite':'background:linear-gradient(135deg,#7b2ff7,#0d0d1a)',
+    'Just Dance':'background:linear-gradient(135deg,#ff6ec7,#1a0a2a)',
+    'Formula 1':'background:linear-gradient(135deg,#e8002d,#1a0a0a)',
+    'Free Fire':'background:linear-gradient(135deg,#ff8c00,#1a0a00)',
+    'PUBG Mobile':'background:linear-gradient(135deg,#f5a623,#1a1000)'
+  };
 
-    const GAMES_MAP = {
-      FC26: '⚽ FC 26', LOL: '⚔️ LoL', Valorant: '🎯 Valorant',
-      Fortnite: '🔫 Fortnite', JustDance: '💃 Just Dance',
-      F1: '🏎️ F1', FreeFire: '🔥 Free Fire', PUBGMobile: '📱 PUBG Mobile'
-    };
-    const COUNTRIES_MAP = {
-      AR:'Argentina',BO:'Bolivia',BR:'Brasil',CL:'Chile',CO:'Colombia',
-      CR:'Costa Rica',EC:'Ecuador',MX:'México',PA:'Panamá',PE:'Perú',
-      UY:'Uruguay',VE:'Venezuela',ES:'España',OTHER:'Otro'
-    };
+  let currentUser    = null;
+  let currentProfile = null;
+  let misTorneos     = [];
 
-    let currentUser = null;
-    let currentProfile = null;
+  const fmtDate = d => d ? new Date(d).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : '—';
 
-    async function init() {
-      const { data: { session } } = await sb.auth.getSession();
-      if (!session) { window.location.href = 'login.html'; return; }
-      currentUser = session.user;
-      await loadProfile();
-      hideLoader();
+  function showToast(msg, type='ok') {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.innerHTML = `<span>${type==='ok'?'✅':'❌'}</span><span>${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+  }
+
+  // ── INIT ────────────────────────────────────────────
+  async function init() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+    currentUser = session.user;
+
+    // Cargar todo en paralelo
+    const [profileRes, gamesRes, torneosRes] = await Promise.all([
+      sb.from('profiles').select('*').eq('id', currentUser.id).single(),
+      sb.from('player_games').select('game_name').eq('player_id', currentUser.id),
+      sb.from('registrations')
+        .select('*, tournaments(*)')
+        .eq('player_id', currentUser.id)
+        .order('registered_at', { ascending: false })
+    ]);
+
+    currentProfile = profileRes.data;
+    const games = gamesRes.data || [];
+    misTorneos  = torneosRes.data || [];
+
+    renderAll(currentProfile, games, misTorneos);
+
+    // Mostrar contenido
+    document.getElementById('loader').classList.add('hide');
+    document.getElementById('pageContent').style.display = 'block';
+  }
+
+  // ── RENDER COMPLETO ──────────────────────────────────
+  function renderAll(p, games, torneos) {
+    if (!p) return;
+    const username = p.username || 'Jugador';
+    const fullName = p.full_name || '';
+    const country  = COUNTRIES_MAP[p.country] || p.country || 'LATAM';
+
+    // Sidebar
+    document.getElementById('sidebarAvatar').childNodes[0].textContent = username[0].toUpperCase();
+    document.getElementById('sidebarUsername').textContent = username;
+    document.getElementById('sidebarEmail').textContent    = currentUser.email;
+
+    // Topbar
+    document.getElementById('topbarUsername').textContent = username;
+
+    // Stats cards
+    const activos = torneos.filter(r => r.tournaments && ['open','in_progress','upcoming'].includes(r.tournaments.status)).length;
+    animateNum(document.getElementById('statTorneos'), torneos.length);
+    animateNum(document.getElementById('statActivos'), activos);
+    animateNum(document.getElementById('statJuegos'),  games.length);
+    document.getElementById('statPais').textContent = COUNTRIES_MAP[p.country]?.split(' ')[0] || '🌎';
+    document.getElementById('badgeTorneos').textContent = torneos.length;
+
+    // Hero perfil
+    document.getElementById('avatarEl').childNodes[0].textContent = username[0].toUpperCase();
+    document.getElementById('heroUsername').textContent = username;
+    document.getElementById('heroFullName').textContent = fullName;
+    document.getElementById('heroCountry').textContent  = country;
+    document.getElementById('heroDate').textContent     = p.created_at ? new Date(p.created_at).toLocaleDateString('es-ES',{month:'long',year:'numeric'}) : '—';
+    if (p.discord_tag) {
+      document.getElementById('heroDiscord').textContent = p.discord_tag;
+      document.getElementById('discordMeta').style.display = 'flex';
     }
 
-    async function loadProfile() {
-      const { data: profile } = await sb
-        .from('profiles')
-        .select('*')
-        .eq('id', currentUser.id)
-        .single();
+    // Juegos
+    const gamesList = document.getElementById('gamesList');
+    gamesList.innerHTML = games.length
+      ? games.map(g => `<div class="game-chip active">${GAMES_MAP[g.game_name] || g.game_name}</div>`).join('')
+      : '<span style="color:var(--gray2);font-size:0.85rem">No has seleccionado juegos aún.</span>';
 
-      const { data: games } = await sb
-        .from('player_games')
-        .select('game_name')
-        .eq('player_id', currentUser.id);
+    // Actividad reciente
+    renderActividad(torneos);
 
-      currentProfile = profile;
-      renderProfile(profile, games || []);
+    // Formulario
+    const nameParts = fullName.split(' ');
+    document.getElementById('editFirstName').value = nameParts[0] || '';
+    document.getElementById('editLastName').value  = nameParts.slice(1).join(' ') || '';
+    document.getElementById('editUsername').value  = username;
+    document.getElementById('editBio').value       = p.bio || '';
+    document.getElementById('editDiscord').value   = p.discord_tag || '';
+    document.getElementById('editCountry').value   = p.country || 'OTHER';
+
+    // Mis torneos
+    renderMisTorneos(torneos);
+  }
+
+  // ── ACTIVIDAD RECIENTE ───────────────────────────────
+  function renderActividad(torneos) {
+    const el = document.getElementById('actividadList');
+    if (!torneos.length) {
+      el.innerHTML = `<div class="empty-box"><span class="e-icon">🏆</span><p>Aún no estás inscrito en ningún torneo.</p><a href="torneos.html" class="btn-link">Ver torneos</a></div>`;
+      return;
     }
+    const recientes = torneos.slice(0, 3);
+    el.innerHTML = recientes.map(r => {
+      const t = r.tournaments;
+      if (!t) return '';
+      return `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+          <div style="width:36px;height:36px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem;${GAME_COVERS[t.game]||'background:rgba(234,57,53,0.15)'}">
+            ${GAME_ICONS[t.game]||'🎮'}
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:0.82rem;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</div>
+            <div style="font-size:0.72rem;color:var(--gray2);margin-top:2px">${t.game} · ${fmtDate(r.registered_at)}</div>
+          </div>
+          <span class="status-pill status-${t.status}">${STATUS_LABELS[t.status]||t.status}</span>
+        </div>`;
+    }).join('') + (torneos.length > 3 ? `<div style="text-align:center;padding-top:12px"><button class="btn-link btn-sm" onclick="showPanel('torneos')" style="font-size:0.75rem;padding:6px 14px">Ver todos (${torneos.length})</button></div>` : '');
+  }
 
-    function renderProfile(p, games) {
-      if (!p) return;
-      const username = p.username || 'Jugador';
-      const fullName = p.full_name || '';
-      const nameParts = fullName.split(' ');
-
-      // Navbar
-      document.getElementById('navUsername').innerHTML = `👤 <span>${username}</span>`;
-
-      // Avatar
-      document.getElementById('avatarEl').textContent = username[0].toUpperCase();
-
-      // Hero
-      document.getElementById('heroUsername').textContent = username;
-      document.getElementById('heroFullName').textContent = fullName;
-      document.getElementById('heroCountry').textContent = COUNTRIES_MAP[p.country] || p.country || 'LATAM';
-      document.getElementById('heroDate').textContent = p.created_at
-        ? new Date(p.created_at).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
-        : '—';
-
-      if (p.discord_tag) {
-        document.getElementById('heroDiscord').textContent = p.discord_tag;
-        document.getElementById('discordMeta').style.display = 'flex';
-      }
-
-      // Stats
-      document.getElementById('statGames').textContent = games.length;
-
-      // Juegos
-      const gamesList = document.getElementById('gamesList');
-      if (games.length === 0) {
-        gamesList.innerHTML = '<span class="no-games">No has seleccionado juegos aún.</span>';
-      } else {
-        gamesList.innerHTML = games.map(g =>
-          `<div class="game-tag active">${GAMES_MAP[g.game_name] || g.game_name}</div>`
-        ).join('');
-      }
-
-      // Formulario editar
-      document.getElementById('editFirstName').value = nameParts[0] || '';
-      document.getElementById('editLastName').value = nameParts.slice(1).join(' ') || '';
-      document.getElementById('editUsername').value = username;
-      document.getElementById('editBio').value = p.bio || '';
-      document.getElementById('editDiscord').value = p.discord_tag || '';
-      document.getElementById('editCountry').value = p.country || 'OTHER';
+  // ── MIS TORNEOS ──────────────────────────────────────
+  function renderMisTorneos(torneos) {
+    const el = document.getElementById('misTorneosList');
+    if (!torneos.length) {
+      el.innerHTML = `
+        <div class="empty-box">
+          <span class="e-icon">🏆</span>
+          <p>Aún no estás inscrito en ningún torneo.</p>
+          <a href="torneos.html" class="btn-link">Explorar torneos disponibles</a>
+        </div>`;
+      return;
     }
+    el.innerHTML = torneos.map(r => {
+      const t = r.tournaments;
+      if (!t) return '';
+      return `
+        <div class="mi-torneo-card">
+          <div class="mi-torneo-cover" style="${GAME_COVERS[t.game]||'background:rgba(234,57,53,0.15)'}">
+            ${GAME_ICONS[t.game]||'🎮'}
+          </div>
+          <div class="mi-torneo-info">
+            <div class="mi-torneo-game">${t.game}</div>
+            <div class="mi-torneo-title">${t.title}</div>
+            <div class="mi-torneo-meta">
+              <span>📅 ${fmtDate(t.start_date)}</span>
+              <span>👥 ${t.current_players||0}/${t.max_players||'∞'}</span>
+              ${t.prize_description ? `<span>🏅 ${t.prize_description.slice(0,30)}${t.prize_description.length>30?'...':''}</span>` : ''}
+            </div>
+          </div>
+          <div class="mi-torneo-status">
+            <span class="status-pill status-${t.status}">${STATUS_LABELS[t.status]||t.status}</span>
+          </div>
+        </div>`;
+    }).join('');
+  }
 
-    // GUARDAR CAMBIOS
-    document.getElementById('editForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('saveBtn');
-      btn.disabled = true; btn.textContent = 'Guardando...';
+  // ── GUARDAR PERFIL ───────────────────────────────────
+  document.getElementById('editForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true; btn.textContent = 'Guardando...';
 
-      const newFullName = `${document.getElementById('editFirstName').value.trim()} ${document.getElementById('editLastName').value.trim()}`.trim();
+    const newFullName = `${document.getElementById('editFirstName').value.trim()} ${document.getElementById('editLastName').value.trim()}`.trim();
+    const { error } = await sb.from('profiles').update({
+      username:    document.getElementById('editUsername').value.trim(),
+      full_name:   newFullName,
+      bio:         document.getElementById('editBio').value.trim(),
+      discord_tag: document.getElementById('editDiscord').value.trim() || null,
+      country:     document.getElementById('editCountry').value,
+      updated_at:  new Date().toISOString(),
+    }).eq('id', currentUser.id);
 
-      const { error } = await sb
-        .from('profiles')
-        .update({
-          username: document.getElementById('editUsername').value.trim(),
-          full_name: newFullName,
-          bio: document.getElementById('editBio').value.trim(),
-          discord_tag: document.getElementById('editDiscord').value.trim() || null,
-          country: document.getElementById('editCountry').value,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', currentUser.id);
+    btn.disabled = false; btn.textContent = '💾 Guardar cambios';
 
-      btn.disabled = false; btn.textContent = '💾 Guardar cambios';
+    if (!error) {
+      const fb = document.getElementById('saveFeedback');
+      fb.classList.add('show');
+      setTimeout(() => fb.classList.remove('show'), 3000);
+      showToast('Perfil actualizado correctamente', 'ok');
+      await init(); // Recargar
+    } else {
+      showToast('Error: ' + error.message, 'err');
+    }
+  });
 
-      if (!error) {
-        const fb = document.getElementById('saveFeedback');
-        fb.classList.add('show');
-        setTimeout(() => fb.classList.remove('show'), 3000);
-        await loadProfile();
-      } else {
-        alert('Error al guardar: ' + error.message);
-      }
+  // ── NAVEGACIÓN SIDEBAR ───────────────────────────────
+  const PANEL_TITLES = {
+    overview: 'Resumen <span>del Jugador</span>',
+    torneos:  'Mis <span>Torneos</span>',
+    perfil:   'Editar <span>Perfil</span>',
+  };
+  function showPanel(name) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => {
+      if (n.textContent.trim().toLowerCase().includes(name === 'overview' ? 'resumen' : name === 'torneos' ? 'mis' : 'editar'))
+        n.classList.add('active');
     });
+    document.getElementById('topbarTitle').innerHTML = PANEL_TITLES[name] || name;
+    closeSidebar();
+  }
 
-    // LOGOUT
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
-      await sb.auth.signOut();
-      window.location.href = 'index.html';
-    });
+  // ── MOBILE SIDEBAR ───────────────────────────────────
+  function openSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebarBackdrop').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarBackdrop').classList.remove('open');
+    document.body.style.overflow = '';
+  }
 
-    function hideLoader() {
-      const overlay = document.getElementById('loadingOverlay');
-      const content = document.getElementById('pageContent');
-      overlay.classList.add('hide');
-      content.style.display = 'block';
-      setTimeout(() => overlay.remove(), 500);
+  // ── LOGOUT ───────────────────────────────────────────
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    window.location.href = 'index.html';
+  });
+
+  // ── AUTH STATE ───────────────────────────────────────
+  sb.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_OUT') window.location.href = 'login.html';
+  });
+
+  // ── ANIMATE NUMBER ───────────────────────────────────
+  function animateNum(el, target) {
+    if (!el || !target) { if(el) el.textContent = target || '0'; return; }
+    const dur = 1200, s = performance.now();
+    function tick(now) {
+      const p = Math.min((now-s)/dur, 1), e = 1-Math.pow(1-p,3);
+      el.textContent = Math.floor(e * target);
+      if (p < 1) requestAnimationFrame(tick);
+      else el.textContent = target;
     }
+    requestAnimationFrame(tick);
+  }
 
-    // Listener de auth
-    sb.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') window.location.href = 'login.html';
-    });
-
-    init();
-  </script>
+  init();
+</script>
 </body>
 </html>
