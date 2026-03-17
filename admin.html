@@ -867,31 +867,19 @@
   </main>
 </div><!-- /layout -->
 
-<script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
   const SUPABASE_URL      = 'https://ambmqayzxqylztbylnkq.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtYm1xYXl6eHF5bHp0YnlsbmtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTE4NjMsImV4cCI6MjA4OTI2Nzg2M30.GC8ZveqhZ_SYb5gfV2sN_sTdPQuud4JSuIZuZ5h-mAU';
 
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // ── Estado global ──
   let allTournaments = [];
   let allPlayers = [];
   let editingId = null;
 
-  // ── Exponer funciones al window ──
-  window.showPanel       = showPanel;
-  window.openCreateModal = openCreateModal;
-  window.closeModal      = closeModal;
-  window.saveTournament  = saveTournament;
-  window.editTournament  = editTournament;
-  window.deleteTournament= deleteTournamentConfirm;
-  window.changeStatus    = changeStatus;
-  window.closeConfirm    = closeConfirm;
-  window.filterTournaments = filterTournaments;
-  window.filterPlayers   = filterPlayers;
-  window.logout          = logout;
+
 
   // ── INIT ──
   async function init() {
@@ -1101,7 +1089,7 @@
   }
 
   // ── MODAL EDITAR ──
-  window.editTournament = function(id) {
+  function editTournament(id) {
     const t = allTournaments.find(x => x.id === id);
     if (!t) return;
     editingId = id;
@@ -1192,17 +1180,17 @@
   }
 
   // ── CAMBIAR ESTADO ──
-  window.changeStatus = async function(id, status) {
+  async function changeStatus(id, status) {
     if (!status) return;
     const { error } = await sb.from('tournaments').update({ status }).eq('id', id);
     if (error) { showToast('Error al cambiar estado', 'error'); return; }
     showToast('Estado actualizado', 'success');
     await Promise.all([loadTournaments(), loadStats()]);
-  };
+  }
 
   // ── ELIMINAR ──
   let pendingDeleteId = null;
-  window.deleteTournamentConfirm = function(id, name) {
+  function deleteTournamentConfirm(id, name) {
     pendingDeleteId = id;
     document.getElementById('confirmTitle').textContent = '¿Eliminar torneo?';
     document.getElementById('confirmDesc').textContent  = `Se eliminará "${name}" de forma permanente. Esta acción no se puede deshacer.`;
@@ -1214,7 +1202,7 @@
       await Promise.all([loadTournaments(), loadStats()]);
     };
     document.getElementById('confirmOverlay').classList.add('open');
-  };
+  }
 
   function closeConfirm() {
     document.getElementById('confirmOverlay').classList.remove('open');
