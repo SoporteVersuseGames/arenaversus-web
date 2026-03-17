@@ -872,7 +872,6 @@
 
   const SUPABASE_URL      = 'https://ambmqayzxqylztbylnkq.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtYm1xYXl6eHF5bHp0YnlsbmtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTE4NjMsImV4cCI6MjA4OTI2Nzg2M30.GC8ZveqhZ_SYb5gfV2sN_sTdPQuud4JSuIZuZ5h-mAU';
-  const ADMIN_EMAIL       = 'soporteversusegames@gmail.com';
 
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -906,8 +905,14 @@
 
     const email = session.user.email;
 
-    // Verificar que sea admin
-    if (email !== ADMIN_EMAIL) {
+    // Verificar admin contra la tabla admins en Supabase
+    const { data: adminRow, error: adminError } = await sb
+      .from('admins')
+      .select('email')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (adminError || !adminRow) {
       document.getElementById('access-denied').classList.add('show');
       return;
     }
