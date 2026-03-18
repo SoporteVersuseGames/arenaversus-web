@@ -562,21 +562,18 @@
 
   // ── INIT ─────────────────────────────────────────────
   async function init() {
-    // Sesión y admin en paralelo con datos
-    const [sessionRes] = await Promise.all([
-      sb.auth.getSession(),
-      loadTournaments(),
-      loadStats()
-    ]);
+    // PASO 1: sesión e inscripciones PRIMERO — antes de renderizar torneos
+    const { data: { session } } = await sb.auth.getSession();
+    currentSession = session;
 
-    currentSession = sessionRes.data.session;
     if (currentSession) {
-      // Cargar inscripciones del usuario
+      // Cargar inscripciones ANTES de renderizar para que los botones sean correctos
       const { data: inscripciones } = await sb.from('registrations')
-        .select('tournament_id').eq('player_id', currentSession.user.id);
+        .select('tournament_id')
+        .eq('player_id', currentSession.user.id);
       if (inscripciones) inscripciones.forEach(r => userInscriptions.add(r.tournament_id));
 
-      // Actualizar navbar
+      // Navbar
       const loginBtn    = document.getElementById('loginBtn');
       const registerBtn = document.getElementById('registerBtn');
       if (loginBtn)    loginBtn.style.display    = 'none';
@@ -590,6 +587,19 @@
         if (adminBtn) adminBtn.style.display = 'inline-flex';
       }
     }
+
+    // PASO 2: ahora torneos y stats con userInscriptions ya cargado
+    await Promise.all([loadTournaments(), loadStats()]);
+  }
+
+  // ── RECARGAR INSCRIPCIONES DEL USUARIO ──────────────
+  async function reloadUserInscriptions() {
+    if (!currentSession) return;
+    userInscriptions.clear();
+    const { data } = await sb.from('registrations')
+      .select('tournament_id')
+      .eq('player_id', currentSession.user.id);
+    if (data) data.forEach(r => userInscriptions.add(r.tournament_id));
   }
 
   // ── CARGAR STATS ─────────────────────────────────────
@@ -923,7 +933,7 @@
       .update({ current_players: (torneoActualizado?.current_players || 0) + 1 })
       .eq('id', tournamentId);
 
-    userInscriptions.add(tournamentId);
+    await reloadUserInscriptions();
     showToast('🎉 ¡Inscripción confirmada! Aparece en tu perfil.', 'success');
     closeModal();
     await loadTournaments();
