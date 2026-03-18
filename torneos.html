@@ -868,34 +868,64 @@
     btn.disabled = true;
     btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite"></span> Inscribiendo...';
 
-    const { error } = await sb.from('registrations').insert({
-      player_id:     currentSession.user.id,
-      tournament_id: activeTournament.id,
-      status:        'confirmed'
-    });
+    const playerId     = currentSession.user.id;
+    const tournamentId = activeTournament.id;
 
-    if (error) {
-      if (error.code === '23505') {
-        showToast('Ya estás inscrito en este torneo', 'info');
-        userInscriptions.add(activeTournament.id);
-      } else {
-        showToast('Error al inscribirse: ' + error.message, 'error');
-        btn.disabled = false;
-        btn.innerHTML = '⚡ Confirmar inscripción';
-        return;
-      }
-    } else {
-      // Incrementar current_players
-      await sb.from('tournaments').update({
-        current_players: (activeTournament.current_players || 0) + 1
-      }).eq('id', activeTournament.id);
+    // Verificar primero si ya está inscrito (doble check desde BD)
+    const { data: existing } = await sb
+      .from('registrations')
+      .select('id')
+      .eq('player_id', playerId)
+      .eq('tournament_id', tournamentId)
+      .maybeSingle();
 
-      userInscriptions.add(activeTournament.id);
-      showToast('🎉 ¡Inscripción confirmada! Revisa tu perfil.', 'success');
+    if (existing) {
+      // Ya inscrito — actualizar estado local y cerrar
+      userInscriptions.add(tournamentId);
+      showToast('Ya estás inscrito en este torneo ✅', 'info');
+      closeModal();
+      await loadTournaments();
+      return;
     }
 
+    // Insertar inscripción
+    const { data: inserted, error } = await sb
+      .from('registrations')
+      .insert({ player_id: playerId, tournament_id: tournamentId, status: 'confirmed' })
+      .select()
+      .single();
+
+    if (error) {
+      // Error 23505 = duplicado (carrera de condición), tratar como inscrito
+      if (error.code === '23505') {
+        userInscriptions.add(tournamentId);
+        showToast('Ya estás inscrito en este torneo ✅', 'info');
+        closeModal();
+        await loadTournaments();
+        return;
+      }
+      // Mostrar error real para debugging
+      console.error('Error inscripción:', error);
+      showToast('Error al inscribirse: ' + error.message, 'error');
+      btn.disabled = false;
+      btn.innerHTML = '⚡ Confirmar inscripción';
+      return;
+    }
+
+    // Inscripción exitosa — incrementar current_players con RPC segura
+    const { data: torneoActualizado } = await sb
+      .from('tournaments')
+      .select('current_players')
+      .eq('id', tournamentId)
+      .single();
+
+    await sb.from('tournaments')
+      .update({ current_players: (torneoActualizado?.current_players || 0) + 1 })
+      .eq('id', tournamentId);
+
+    userInscriptions.add(tournamentId);
+    showToast('🎉 ¡Inscripción confirmada! Aparece en tu perfil.', 'success');
     closeModal();
-    // Recargar torneos para actualizar cupos
     await loadTournaments();
   }
 
