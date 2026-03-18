@@ -725,8 +725,10 @@
     el.innerHTML = torneos.map(r => {
       const t = r.tournaments;
       if (!t) return '';
+      const canLeave = ['upcoming','open'].includes(t.status);
+      const regId = r.id;
       return `
-        <div class="mi-torneo-card">
+        <div class="mi-torneo-card" id="card-reg-${r.id}">
           <div class="mi-torneo-cover" style="${GAME_COVERS[t.game]||'background:rgba(234,57,53,0.15)'}">
             ${GAME_ICONS[t.game]||'🎮'}
           </div>
@@ -735,15 +737,53 @@
             <div class="mi-torneo-title">${t.title}</div>
             <div class="mi-torneo-meta">
               <span>📅 ${fmtDate(t.start_date)}</span>
-              <span>👥 ${t.current_players||0}/${t.max_players||'∞'}</span>
+              <span>👥 ${t.current_players||0}/${t.max_players||'\u221e'}</span>
               ${t.prize_description ? `<span>🏅 ${t.prize_description.slice(0,30)}${t.prize_description.length>30?'...':''}</span>` : ''}
             </div>
           </div>
-          <div class="mi-torneo-status">
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
             <span class="status-pill status-${t.status}">${STATUS_LABELS[t.status]||t.status}</span>
+            ${canLeave ? `<button
+              onclick="desinscribirse('${r.id}','${t.id}',this)"
+              style="font-size:0.68rem;font-weight:700;color:var(--red);background:rgba(234,57,53,0.08);border:1px solid rgba(234,57,53,0.25);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit;letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap">
+              ✕ Desinscribirme
+            </button>` : ''}
           </div>
         </div>`;
     }).join('');
+  }
+
+  // ── DESINSCRIBIRSE ───────────────────────────────────
+  async function desinscribirse(registrationId, tournamentId, btn) {
+    if (!confirm('¿Seguro que quieres desinscribirte de este torneo?')) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Procesando...';
+
+    const { error } = await sb.from('registrations')
+      .delete()
+      .eq('id', registrationId)
+      .eq('player_id', currentUser.id);
+
+    if (error) {
+      showToast('Error al desinscribirse: ' + error.message, 'err');
+      btn.disabled = false;
+      btn.textContent = '✕ Desinscribirme';
+      return;
+    }
+
+    // Reducir current_players
+    const { data: t } = await sb.from('tournaments')
+      .select('current_players').eq('id', tournamentId).single();
+    await sb.from('tournaments')
+      .update({ current_players: Math.max(0,(t?.current_players||1)-1) })
+      .eq('id', tournamentId);
+
+    showToast('Te has desinscrito del torneo ✅', 'ok');
+    // Eliminar card visualmente y recargar
+    const card = document.getElementById('card-reg-' + registrationId);
+    if (card) { card.style.opacity='0'; card.style.transform='translateX(-10px)'; card.style.transition='all 0.3s'; }
+    setTimeout(() => init(), 400);
   }
 
   // ── GUARDAR PERFIL ───────────────────────────────────

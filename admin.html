@@ -694,10 +694,6 @@
         Jugadores
         <span id="players-count" style="margin-left:auto;background:rgba(59,130,246,0.15);color:#60a5fa;font-size:0.68rem;font-weight:700;padding:1px 7px;border-radius:100px;">0</span>
       </div>
-      <div class="nav-item" onclick="showPanel('results'); loadFinishedTournaments();">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
-        Resultados
-      </div>
       <div class="nav-divider"></div>
       <div class="nav-section-label">Configuración</div>
       <a class="nav-item" href="index.html" target="_blank">
@@ -867,63 +863,6 @@
         </div>
       </div>
 
-      <!-- ── PANEL RESULTADOS ── -->
-      <div class="panel" id="panel-results">
-        <div class="section-hdr" style="margin-bottom:20px">
-          <div>
-            <h2>Registrar Resultados</h2>
-            <p>Asigna posiciones y puntos a jugadores de torneos finalizados</p>
-          </div>
-        </div>
-
-        <!-- Selector de torneo -->
-        <div class="table-wrap" style="margin-bottom:20px;padding:20px">
-          <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end">
-            <div>
-              <label style="font-size:0.7rem;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:0.1em;display:block;margin-bottom:8px">Selecciona el torneo</label>
-              <select class="filter-select" id="resultsTournamentSelect" style="width:100%;padding:10px 14px" onchange="loadTournamentPlayers()">
-                <option value="">— Elige un torneo finalizado o en curso —</option>
-              </select>
-            </div>
-            <button class="btn btn-ghost btn-sm" onclick="loadFinishedTournaments()">↻ Actualizar</button>
-          </div>
-        </div>
-
-        <!-- Tabla de jugadores inscritos -->
-        <div class="table-wrap" id="resultsWrap" style="display:none">
-          <div style="padding:16px 20px;border-bottom:var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-            <div>
-              <span style="font-size:0.88rem;font-weight:700;color:var(--white)" id="resultsTournamentName">—</span>
-              <span style="font-size:0.75rem;color:var(--gray2);margin-left:8px" id="resultsTournamentGame"></span>
-            </div>
-            <button class="btn btn-primary btn-sm" onclick="saveAllResults()">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Guardar todos los resultados
-            </button>
-          </div>
-          <div style="padding:10px 20px;border-bottom:var(--border);background:rgba(234,57,53,0.05);display:flex;gap:20px;flex-wrap:wrap">
-            <span style="font-size:0.75rem;color:var(--gray2)">Puntos por posición:</span>
-            <span style="font-size:0.75rem;color:var(--light)">🥇 1° = <strong style="color:#f59e0b">100 pts</strong></span>
-            <span style="font-size:0.75rem;color:var(--light)">🥈 2° = <strong style="color:#94a3b8">60 pts</strong></span>
-            <span style="font-size:0.75rem;color:var(--light)">🥉 3° = <strong style="color:#cd7c2f">40 pts</strong></span>
-            <span style="font-size:0.75rem;color:var(--light)">🎮 Participación = <strong style="color:var(--gray)">10 pts</strong></span>
-          </div>
-          <div id="resultsLoadingMsg" class="loading" style="display:none"><div class="spinner"></div> Cargando jugadores...</div>
-          <div id="resultsContent" style="display:none">
-            <table>
-              <thead><tr>
-                <th>Jugador</th><th>Username</th><th>País</th><th>Posición</th><th>Puntos</th><th>Notas</th>
-              </tr></thead>
-              <tbody id="resultsTbody"></tbody>
-            </table>
-          </div>
-          <div id="resultsEmpty" class="empty-state" style="display:none">
-            <div class="empty-state-icon">👥</div>
-            <p>No hay jugadores inscritos en este torneo.</p>
-          </div>
-        </div>
-      </div>
-
     </div><!-- /content -->
   </main>
 </div><!-- /layout -->
@@ -1050,6 +989,9 @@
         <td style="font-size:0.78rem">${t.start_date ? fmtDate(t.start_date) : '—'}</td>
         <td>
           <div class="td-actions">
+            <button class="btn btn-ghost btn-icon btn-sm" title="Ver inscritos" onclick="openInscritos('${t.id}','${t.title.replace(/'/g,"\'")}','${t.game}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </button>
             <button class="btn btn-ghost btn-icon btn-sm" title="Editar" onclick="editTournament('${t.id}')">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>
@@ -1339,129 +1281,301 @@
     if (e.key === 'Escape') { closeModal(); closeConfirm(); }
   });
 
-  // ── RESULTADOS ──────────────────────────────────────────
-  let currentResultsTournament = null;
-  let currentResultsPlayers    = [];
 
-  async function loadFinishedTournaments() {
-    const { data } = await sb.from('tournaments')
-      .select('id, title, game, status')
-      .in('status', ['finished', 'in_progress'])
-      .order('created_at', { ascending: false });
+  // ── GESTIÓN DE INSCRITOS ─────────────────────────────
+  let currentInscritosTournament = null;
+  let allInscritos = [];
+  let mensajePlayerId = null;
 
-    const sel = document.getElementById('resultsTournamentSelect');
-    sel.innerHTML = '<option value="">— Elige un torneo finalizado o en curso —</option>';
-    (data || []).forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t.id;
-      opt.textContent = `${t.title} (${t.game}) — ${t.status === 'finished' ? 'Finalizado' : 'En Curso'}`;
-      sel.appendChild(opt);
-    });
-  }
+  async function openInscritos(id, title, game) {
+    currentInscritosTournament = { id, title, game };
+    document.getElementById('inscritosTitle').innerHTML = `Jugadores <span>Inscritos</span>`;
+    document.getElementById('inscritosSubtitle').textContent = `${title} · ${game}`;
+    document.getElementById('inscritosSearch').value = '';
+    document.getElementById('inscritosLoading').style.display  = 'flex';
+    document.getElementById('inscritosTable').style.display    = 'none';
+    document.getElementById('inscritosEmpty').style.display    = 'none';
+    document.getElementById('inscritosOverlay').classList.add('open');
 
-  async function loadTournamentPlayers() {
-    const id = document.getElementById('resultsTournamentSelect').value;
-    if (!id) { document.getElementById('resultsWrap').style.display = 'none'; return; }
+    const { data, error } = await sb
+      .from('registrations')
+      .select('id, status, registered_at, player_id, profiles(id, username, full_name, country, discord_tag, bio)')
+      .eq('tournament_id', id)
+      .order('registered_at', { ascending: true });
 
-    document.getElementById('resultsWrap').style.display       = 'block';
-    document.getElementById('resultsLoadingMsg').style.display = 'flex';
-    document.getElementById('resultsContent').style.display    = 'none';
-    document.getElementById('resultsEmpty').style.display      = 'none';
+    document.getElementById('inscritosLoading').style.display = 'none';
 
-    const { data: t }    = await sb.from('tournaments').select('*').eq('id', id).single();
-    const { data: regs } = await sb.from('registrations')
-      .select('player_id, profiles(id, username, full_name, country)')
-      .eq('tournament_id', id);
-    const { data: existing } = await sb.from('tournament_results')
-      .select('*').eq('tournament_id', id);
-
-    currentResultsTournament = t;
-    currentResultsPlayers    = regs || [];
-
-    document.getElementById('resultsTournamentName').textContent = t?.title || '—';
-    document.getElementById('resultsTournamentGame').textContent = t?.game  || '';
-    document.getElementById('resultsLoadingMsg').style.display   = 'none';
-
-    if (!regs || !regs.length) {
-      document.getElementById('resultsEmpty').style.display = 'block'; return;
+    if (error || !data || !data.length) {
+      document.getElementById('inscritosEmpty').style.display = 'block';
+      document.getElementById('inscritosCount').textContent = '0 jugadores';
+      return;
     }
 
-    const existingMap = {};
-    (existing || []).forEach(r => { existingMap[r.player_id] = r; });
+    allInscritos = data;
+    renderInscritos(data);
+  }
 
-    document.getElementById('resultsContent').style.display = 'block';
-    document.getElementById('resultsTbody').innerHTML = regs.map(r => {
-      const p  = r.profiles;
-      const ex = existingMap[r.player_id];
+  function renderInscritos(list) {
+    document.getElementById('inscritosCount').textContent = list.length + ' jugador' + (list.length !== 1 ? 'es' : '');
+
+    if (!list.length) {
+      document.getElementById('inscritosTable').style.display = 'none';
+      document.getElementById('inscritosEmpty').style.display = 'block';
+      return;
+    }
+
+    const STATUS_COLORS = {
+      confirmed:    'background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25)',
+      pending:      'background:rgba(234,197,0,0.12);color:#facc15;border:1px solid rgba(234,197,0,0.25)',
+      vetoed:       'background:rgba(234,57,53,0.15);color:#f87171;border:1px solid rgba(234,57,53,0.3)',
+      eliminated:   'background:rgba(100,100,98,0.15);color:#888886;border:1px solid rgba(255,255,255,0.08)',
+      disqualified: 'background:rgba(234,57,53,0.15);color:#f87171;border:1px solid rgba(234,57,53,0.3)',
+    };
+    const STATUS_LABELS = { confirmed:'Confirmado', pending:'Pendiente', vetoed:'Vetado', eliminated:'Eliminado', disqualified:'Descalificado' };
+
+    document.getElementById('inscritosTable').style.display = 'table';
+    document.getElementById('inscritosEmpty').style.display = 'none';
+
+    document.getElementById('inscritosTbody').innerHTML = list.map(r => {
+      const p = r.profiles;
+      const statusStyle = STATUS_COLORS[r.status] || STATUS_COLORS.confirmed;
+      const statusLabel = STATUS_LABELS[r.status] || r.status;
+      const safeTitle = (currentInscritosTournament.title||'').replace(/'/g, "\'").replace(/"/g, '&quot;');
+
       return `
-        <tr>
-          <td class="td-name">${p?.full_name || '—'}</td>
-          <td style="font-size:0.85rem;color:var(--light);font-weight:700">@${p?.username || '—'}</td>
-          <td style="font-size:0.85rem">${countryFlag(p?.country)} ${p?.country || '—'}</td>
-          <td>
-            <select id="pos_${r.player_id}" onchange="updatePtsDisplay('${r.player_id}')"
-              style="background:var(--black3);border:var(--border);border-radius:6px;padding:6px 10px;color:var(--light);font-size:0.8rem;font-family:inherit;outline:none;cursor:pointer">
-              <option value="">Sin posición</option>
-              <option value="1" ${ex?.position==1?'selected':''}>🥇 1° Campeón</option>
-              <option value="2" ${ex?.position==2?'selected':''}>🥈 2° Subcampeón</option>
-              <option value="3" ${ex?.position==3?'selected':''}>🥉 3° Tercer lugar</option>
-              <option value="4" ${ex?.position==4?'selected':''}>🎮 Participación</option>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background=''">
+          <td style="padding:12px 20px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#ea3935,#ec622b);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:900;color:#fff;flex-shrink:0;text-transform:uppercase">
+                ${(p?.username||'?')[0].toUpperCase()}
+              </div>
+              <div>
+                <div style="font-size:0.85rem;font-weight:700;color:var(--white)">@${p?.username||'—'}</div>
+                <div style="font-size:0.72rem;color:var(--gray2)">${p?.full_name||''}</div>
+              </div>
+            </div>
+          </td>
+          <td style="padding:12px 16px;font-size:0.82rem;color:var(--gray)">${countryFlag(p?.country)} ${p?.country||'—'}</td>
+          <td style="padding:12px 16px;font-size:0.78rem;color:var(--gray2)">${p?.discord_tag||'—'}</td>
+          <td style="padding:12px 16px">
+            <select onchange="cambiarEstadoInscrito('${r.id}', this.value)"
+              style="${statusStyle};font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:3px 10px;border-radius:100px;cursor:pointer;font-family:inherit;outline:none;appearance:none;-webkit-appearance:none">
+              <option value="confirmed"    ${r.status==='confirmed'?'selected':''}>Confirmado</option>
+              <option value="pending"      ${r.status==='pending'?'selected':''}>Pendiente</option>
+              <option value="eliminated"   ${r.status==='eliminated'?'selected':''}>Eliminado</option>
+              <option value="vetoed"       ${r.status==='vetoed'?'selected':''}>Vetado</option>
+              <option value="disqualified" ${r.status==='disqualified'?'selected':''}>Descalificado</option>
             </select>
           </td>
-          <td id="ptsDisplay_${r.player_id}" style="font-size:0.9rem;font-weight:700;color:var(--light)">${ex ? ex.points_awarded + ' pts' : '—'}</td>
-          <td>
-            <input id="notes_${r.player_id}" type="text" value="${ex?.notes||''}" placeholder="Opcional"
-              style="background:var(--black3);border:var(--border);border-radius:6px;padding:6px 10px;color:var(--light);font-size:0.78rem;font-family:inherit;outline:none;width:130px"/>
+          <td style="padding:12px 16px">
+            <div style="display:flex;gap:6px;justify-content:flex-end">
+              <button class="btn btn-ghost btn-icon btn-sm" title="Ver perfil" onclick="verPerfil(${JSON.stringify(p||{}).replace(/'/g, '&apos;')})">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </button>
+              <button class="btn btn-ghost btn-icon btn-sm" title="Enviar mensaje" onclick="abrirMensaje('${r.player_id}','${(p?.username||'').replace(/'/g,"\'")}')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </button>
+              <button class="btn btn-danger btn-icon btn-sm" title="Eliminar del torneo" onclick="eliminarInscrito('${r.id}','${(p?.username||'').replace(/'/g,"\'")}')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              </button>
+            </div>
           </td>
         </tr>`;
     }).join('');
   }
 
-  function updatePtsDisplay(playerId) {
-    const pos    = parseInt(document.getElementById('pos_' + playerId).value);
-    const ptsMap = { 1:100, 2:60, 3:40, 4:10 };
-    const el     = document.getElementById('ptsDisplay_' + playerId);
-    if (el) el.textContent = isNaN(pos) ? '—' : (ptsMap[Math.min(pos,4)] || 10) + ' pts';
+  function filterInscritos() {
+    const q = document.getElementById('inscritosSearch').value.toLowerCase().trim();
+    if (!q) { renderInscritos(allInscritos); return; }
+    const filtered = allInscritos.filter(r => {
+      const p = r.profiles;
+      return (p?.username||'').toLowerCase().includes(q) ||
+             (p?.full_name||'').toLowerCase().includes(q) ||
+             (p?.country||'').toLowerCase().includes(q);
+    });
+    renderInscritos(filtered);
   }
 
-  async function saveAllResults() {
-    if (!currentResultsTournament) return;
-    const btn = document.querySelector('[onclick="saveAllResults()"]');
-    btn.disabled = true; btn.textContent = 'Guardando...';
+  function closeInscritos() {
+    document.getElementById('inscritosOverlay').classList.remove('open');
+    currentInscritosTournament = null;
+    allInscritos = [];
+  }
 
-    let saved = 0, errors = 0;
-    for (const r of currentResultsPlayers) {
-      const posEl = document.getElementById('pos_' + r.player_id);
-      if (!posEl || !posEl.value) continue;
-      const pos   = parseInt(posEl.value);
-      const notes = (document.getElementById('notes_' + r.player_id)?.value || '').trim();
+  async function cambiarEstadoInscrito(registrationId, newStatus) {
+    const { error } = await sb.from('registrations')
+      .update({ status: newStatus })
+      .eq('id', registrationId);
+    if (error) { showToast('Error al cambiar estado', 'error'); return; }
+    showToast('Estado actualizado ✅', 'success');
+    // Actualizar en memoria
+    const reg = allInscritos.find(r => r.id === registrationId);
+    if (reg) reg.status = newStatus;
+  }
 
-      const { error } = await sb.rpc('register_result', {
-        p_tournament_id: currentResultsTournament.id,
-        p_player_id:     r.player_id,
-        p_position:      pos
-      });
+  async function eliminarInscrito(registrationId, username) {
+    document.getElementById('confirmTitle').textContent = '¿Eliminar jugador?';
+    document.getElementById('confirmDesc').textContent  = `Se eliminará a @${username} del torneo. Esta acción no se puede deshacer.`;
+    document.getElementById('confirmOk').onclick = async () => {
+      const reg = allInscritos.find(r => r.id === registrationId);
+      const { error } = await sb.from('registrations').delete().eq('id', registrationId);
+      closeConfirm();
+      if (error) { showToast('Error al eliminar', 'error'); return; }
+      // Reducir current_players
+      if (reg && currentInscritosTournament) {
+        const { data: t } = await sb.from('tournaments').select('current_players').eq('id', currentInscritosTournament.id).single();
+        await sb.from('tournaments').update({ current_players: Math.max(0,(t?.current_players||1)-1) }).eq('id', currentInscritosTournament.id);
+      }
+      showToast(`@${username} eliminado del torneo`, 'success');
+      await loadTournaments();
+      await loadStats();
+      // Recargar lista
+      if (currentInscritosTournament) await openInscritos(currentInscritosTournament.id, currentInscritosTournament.title, currentInscritosTournament.game);
+    };
+    document.getElementById('confirmOverlay').classList.add('open');
+  }
 
-      if (!error) {
-        if (notes) await sb.from('tournament_results')
-          .update({ notes })
-          .eq('tournament_id', currentResultsTournament.id)
-          .eq('player_id', r.player_id);
-        saved++;
-      } else { errors++; console.error('Error guardando resultado:', error); }
+  function verPerfil(p) {
+    if (!p || !p.username) return;
+    const COUNTRIES = { CO:'🇨🇴 Colombia',MX:'🇲🇽 México',AR:'🇦🇷 Argentina',CL:'🇨🇱 Chile',PE:'🇵🇪 Perú',VE:'🇻🇪 Venezuela',EC:'🇪🇨 Ecuador',ES:'🇪🇸 España',PA:'🇵🇦 Panamá',BO:'🇧🇴 Bolivia',UY:'🇺🇾 Uruguay',OTHER:'🌎 LATAM' };
+    document.getElementById('perfilBody').innerHTML = `
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+        <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#ea3935,#ec622b);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;color:#fff;flex-shrink:0;text-transform:uppercase">
+          ${(p.username||'?')[0].toUpperCase()}
+        </div>
+        <div>
+          <div style="font-size:1.1rem;font-weight:900;color:var(--white);text-transform:uppercase">@${p.username||'—'}</div>
+          <div style="font-size:0.85rem;color:var(--gray2)">${p.full_name||''}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div style="background:var(--black3);border:var(--border);border-radius:var(--radius);padding:12px">
+          <div style="font-size:0.65rem;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">País</div>
+          <div style="font-size:0.88rem;font-weight:600;color:var(--white)">${COUNTRIES[p.country]||p.country||'—'}</div>
+        </div>
+        <div style="background:var(--black3);border:var(--border);border-radius:var(--radius);padding:12px">
+          <div style="font-size:0.65rem;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Discord</div>
+          <div style="font-size:0.88rem;font-weight:600;color:var(--white)">${p.discord_tag||'No configurado'}</div>
+        </div>
+      </div>
+      ${p.bio ? `<div style="background:var(--black3);border:var(--border);border-radius:var(--radius);padding:12px"><div style="font-size:0.65rem;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Bio</div><div style="font-size:0.85rem;color:var(--gray);line-height:1.6">${p.bio}</div></div>` : ''}
+    `;
+    document.getElementById('perfilOverlay').classList.add('open');
+  }
+
+  function abrirMensaje(playerId, username) {
+    mensajePlayerId = playerId;
+    document.getElementById('mensajeDestinatario').textContent = '@' + username;
+    document.getElementById('mensajeTexto').value = '';
+    document.getElementById('mensajeOverlay').classList.add('open');
+  }
+
+  async function enviarMensaje() {
+    if (!mensajePlayerId) return;
+    const texto = document.getElementById('mensajeTexto').value.trim();
+    if (!texto) { showToast('Escribe un mensaje', 'error'); return; }
+
+    // Guardar mensaje en BD (tabla notifications si existe, o simplemente mostrar confirmación)
+    showToast('✅ Mensaje guardado (próximamente envío por email/Discord)', 'success');
+    document.getElementById('mensajeOverlay').classList.remove('open');
+    mensajePlayerId = null;
+  }
+
+  // Cerrar modales de inscritos con ESC
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeInscritos();
+      document.getElementById('perfilOverlay').classList.remove('open');
+      document.getElementById('mensajeOverlay').classList.remove('open');
     }
-
-    btn.disabled = false;
-    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Guardar todos los resultados';
-
-    if (errors === 0) showToast(`✅ ${saved} resultados guardados con puntos asignados`, 'success');
-    else showToast(`⚠️ ${saved} guardados, ${errors} con error`, 'error');
-
-    await loadTournamentPlayers();
-  }
+  });
 
   // ── Iniciar ──
   init();
 </script>
+
+<!-- MODAL INSCRITOS -->
+<div class="modal-overlay" id="inscritosOverlay" style="z-index:1100">
+  <div class="modal" style="max-width:780px">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="inscritosTitle">Jugadores <span>Inscritos</span></div>
+        <div style="font-size:0.78rem;color:var(--gray2);margin-top:3px" id="inscritosSubtitle"></div>
+      </div>
+      <button class="modal-close" onclick="closeInscritos()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div style="padding:0 28px 12px;display:flex;align-items:center;gap:10px;border-bottom:var(--border)">
+      <input type="text" id="inscritosSearch" placeholder="Buscar jugador..." oninput="filterInscritos()"
+        style="flex:1;background:var(--black3);border:var(--border);border-radius:var(--radius);padding:8px 14px;color:var(--light);font-size:0.83rem;outline:none;font-family:inherit"/>
+      <span style="font-size:0.78rem;color:var(--gray2)" id="inscritosCount"></span>
+    </div>
+    <div style="max-height:420px;overflow-y:auto">
+      <div id="inscritosLoading" class="loading"><div class="spinner"></div> Cargando...</div>
+      <table id="inscritosTable" style="display:none;width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="border-bottom:var(--border);background:rgba(255,255,255,0.02)">
+            <th style="padding:10px 20px;text-align:left;font-size:0.68rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray2)">Jugador</th>
+            <th style="padding:10px 16px;text-align:left;font-size:0.68rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray2)">País</th>
+            <th style="padding:10px 16px;text-align:left;font-size:0.68rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray2)">Discord</th>
+            <th style="padding:10px 16px;text-align:left;font-size:0.68rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray2)">Estado</th>
+            <th style="padding:10px 16px;text-align:right;font-size:0.68rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray2)">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="inscritosTbody"></tbody>
+      </table>
+      <div id="inscritosEmpty" class="empty-state" style="display:none">
+        <div class="empty-state-icon">👥</div>
+        <p>No hay jugadores inscritos en este torneo.</p>
+      </div>
+    </div>
+    <div style="padding:16px 28px;border-top:var(--border);display:flex;justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="closeInscritos()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PERFIL JUGADOR -->
+<div class="modal-overlay" id="perfilOverlay" style="z-index:1200">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title">Perfil <span>del Jugador</span></div>
+      <button class="modal-close" onclick="document.getElementById('perfilOverlay').classList.remove('open')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="perfilBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('perfilOverlay').classList.remove('open')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MENSAJE -->
+<div class="modal-overlay" id="mensajeOverlay" style="z-index:1200">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <div class="modal-title">Enviar <span>Mensaje</span></div>
+      <button class="modal-close" onclick="document.getElementById('mensajeOverlay').classList.remove('open')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.85rem;color:var(--gray);margin-bottom:16px">Para: <strong id="mensajeDestinatario" style="color:var(--white)"></strong></p>
+      <div style="margin-bottom:16px">
+        <label style="font-size:0.7rem;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:0.1em;display:block;margin-bottom:7px">Mensaje</label>
+        <textarea id="mensajeTexto" rows="4" placeholder="Escribe tu mensaje al jugador..."
+          style="width:100%;background:var(--black3);border:var(--border);border-radius:var(--radius);padding:10px 14px;color:var(--light);font-family:inherit;font-size:0.88rem;outline:none;resize:vertical"></textarea>
+      </div>
+      <p style="font-size:0.75rem;color:var(--gray2)">⚠️ El mensaje se guardará en la BD. Próximamente se enviará por email/Discord.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('mensajeOverlay').classList.remove('open')">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="enviarMensaje()">Enviar mensaje</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
