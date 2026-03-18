@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clasificación — Arena Versus</title>
+  <meta name="description" content="Ranking oficial de jugadores de Arena Versus LATAM. Top jugadores por puntos, victorias y torneos jugados."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --black:    #111111; --black2: #1c1c1c; --black3: #242424; --black4: #2e2e2e;
+      --red:      #ea3935; --orange: #ec622b;
+      --gradient: linear-gradient(135deg,#ea3935 0%,#ec622b 100%);
+      --gray:     #c7c7c5; --gray2:  #888886; --light: #eaeaea; --white: #ffffff;
+      --gold:     #f59e0b; --silver: #94a3b8; --bronze: #cd7c2f;
+      --green:    #22c55e; --blue:   #3b82f6;
+      --font:     'Inter Tight', sans-serif;
+      --radius:   8px; --radius-lg: 12px;
+      --border:   1px solid rgba(255,255,255,0.07);
+      --border-red: 1px solid rgba(234,57,53,0.3);
+      --transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html { scroll-behavior:smooth; }
+    body { font-family:var(--font); background:var(--black); color:var(--gray); overflow-x:hidden; }
+    a { text-decoration:none; color:inherit; }
+
+    /* GRAIN */
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:0.03;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size:200px 200px;
+    }
+
+    /* ── NAVBAR ── */
+    .navbar { position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(17,17,17,0.92); backdrop-filter:blur(20px); border-bottom:var(--border); height:68px; display:flex; align-items:center; }
+    .nav-inner { max-width:1280px; margin:0 auto; padding:0 24px; width:100%; display:flex; align-items:center; justify-content:space-between; }
+    .nav-brand { display:flex; align-items:center; gap:10px; }
+    .nav-wordmark { font-size:0.95rem; font-weight:900; color:var(--white); text-transform:uppercase; letter-spacing:0.1em; }
+    .nav-links { display:flex; align-items:center; gap:4px; }
+    .nav-links a { color:var(--gray2); font-size:0.82rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; padding:8px 14px; border-radius:6px; transition:var(--transition); }
+    .nav-links a:hover { color:var(--white); background:rgba(255,255,255,0.06); }
+    .nav-links a.active { color:var(--white); }
+    .nav-right { display:flex; align-items:center; gap:10px; }
+    .btn { display:inline-flex; align-items:center; gap:7px; padding:9px 18px; border-radius:var(--radius); border:none; font-family:var(--font); font-weight:700; font-size:0.78rem; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; transition:var(--transition); }
+    .btn-primary { background:var(--gradient); color:#fff; }
+    .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(234,57,53,0.4); }
+    .btn-ghost { background:rgba(255,255,255,0.05); color:var(--gray); border:var(--border); }
+    .btn-ghost:hover { background:rgba(255,255,255,0.09); color:var(--white); }
+
+    /* ── HERO ── */
+    .page-hero { padding:120px 0 56px; background:var(--black); position:relative; overflow:hidden; }
+    .page-hero::before { content:''; position:absolute; top:-200px; right:-200px; width:700px; height:700px; background:radial-gradient(circle,rgba(234,57,53,0.1) 0%,transparent 70%); pointer-events:none; }
+    .page-hero::after { content:''; position:absolute; bottom:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(234,57,53,0.3),transparent); }
+    .container { max-width:1280px; margin:0 auto; padding:0 24px; }
+    .hero-tag { display:inline-flex; align-items:center; gap:8px; background:rgba(234,57,53,0.1); border:var(--border-red); color:var(--red); font-size:0.72rem; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; padding:6px 14px; border-radius:4px; margin-bottom:20px; }
+    .hero-tag::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--red); animation:pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.7)} }
+    .page-hero h1 { font-size:clamp(2rem,4vw,3.2rem); font-weight:900; color:var(--white); text-transform:uppercase; letter-spacing:-0.02em; line-height:1.05; margin-bottom:14px; }
+    .page-hero h1 span { background:var(--gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .page-hero p { color:var(--gray); font-size:1rem; max-width:520px; margin-bottom:32px; }
+
+    /* Podio top 3 */
+    .podium { display:flex; align-items:flex-end; gap:12px; margin-top:32px; flex-wrap:wrap; }
+    .podium-card {
+      background:var(--black2); border:var(--border); border-radius:var(--radius-lg);
+      padding:20px 24px; display:flex; align-items:center; gap:16px;
+      position:relative; overflow:hidden; transition:var(--transition); min-width:260px;
+    }
+    .podium-card:hover { transform:translateY(-3px); }
+    .podium-card.gold   { border-color:rgba(245,158,11,0.4); }
+    .podium-card.silver { border-color:rgba(148,163,184,0.35); }
+    .podium-card.bronze { border-color:rgba(205,124,47,0.35); }
+    .podium-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+    .podium-card.gold::before   { background:linear-gradient(90deg,transparent,#f59e0b,transparent); }
+    .podium-card.silver::before { background:linear-gradient(90deg,transparent,#94a3b8,transparent); }
+    .podium-card.bronze::before { background:linear-gradient(90deg,transparent,#cd7c2f,transparent); }
+    .podium-rank { font-size:2rem; flex-shrink:0; }
+    .podium-avatar { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.1rem; font-weight:900; color:#fff; flex-shrink:0; text-transform:uppercase; }
+    .podium-avatar.gold   { background:linear-gradient(135deg,#f59e0b,#d97706); }
+    .podium-avatar.silver { background:linear-gradient(135deg,#94a3b8,#64748b); }
+    .podium-avatar.bronze { background:linear-gradient(135deg,#cd7c2f,#92400e); }
+    .podium-info { flex:1; }
+    .podium-username { font-size:1rem; font-weight:800; color:var(--white); }
+    .podium-country  { font-size:0.75rem; color:var(--gray2); margin-top:2px; }
+    .podium-pts { text-align:right; }
+    .podium-pts-val { font-size:1.4rem; font-weight:900; }
+    .podium-pts-val.gold   { color:var(--gold); }
+    .podium-pts-val.silver { color:var(--silver); }
+    .podium-pts-val.bronze { color:var(--bronze); }
+    .podium-pts-label { font-size:0.65rem; color:var(--gray2); text-transform:uppercase; letter-spacing:0.1em; }
+
+    /* ── FILTROS ── */
+    .filters-bar { background:var(--black2); border-bottom:var(--border); position:sticky; top:68px; z-index:100; padding:14px 0; }
+    .filters-inner { max-width:1280px; margin:0 auto; padding:0 24px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .filter-select { background:var(--black3); border:var(--border); border-radius:var(--radius); padding:9px 14px; color:var(--gray); font-family:var(--font); font-size:0.8rem; font-weight:600; outline:none; cursor:pointer; transition:var(--transition); }
+    .filter-select:focus { border-color:rgba(234,57,53,0.4); }
+    .filter-select option { background:var(--black2); }
+    .tab-group { display:flex; background:var(--black3); border:var(--border); border-radius:var(--radius); padding:3px; gap:2px; }
+    .tab-btn { padding:7px 16px; border-radius:6px; font-size:0.75rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; border:none; background:transparent; color:var(--gray2); font-family:var(--font); transition:var(--transition); }
+    .tab-btn.active { background:rgba(234,57,53,0.15); color:var(--white); }
+    .filter-results { margin-left:auto; font-size:0.78rem; color:var(--gray2); white-space:nowrap; }
+    .filter-results span { color:var(--red); font-weight:700; }
+
+    /* ── MAIN ── */
+    .main-content { max-width:1280px; margin:0 auto; padding:36px 24px 80px; }
+
+    /* ── TABLA LEADERBOARD ── */
+    .leaderboard-wrap { background:var(--black2); border:var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+    .lb-header { display:grid; align-items:center; padding:12px 20px; border-bottom:var(--border); background:rgba(255,255,255,0.02); }
+    .lb-header span { font-size:0.68rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--gray2); }
+
+    /* columnas: rank | jugador | país | juegos | victorias | torneos | pts */
+    .lb-cols { grid-template-columns: 52px 1fr 100px 80px 80px 80px 100px; }
+
+    .lb-row {
+      display:grid; align-items:center; padding:14px 20px;
+      border-bottom:1px solid rgba(255,255,255,0.04);
+      transition:var(--transition); cursor:default;
+    }
+    .lb-row:last-child { border-bottom:none; }
+    .lb-row:hover { background:rgba(255,255,255,0.02); }
+    .lb-row.top1 { background:rgba(245,158,11,0.05); }
+    .lb-row.top2 { background:rgba(148,163,184,0.04); }
+    .lb-row.top3 { background:rgba(205,124,47,0.04); }
+    .lb-row.mine { background:rgba(234,57,53,0.06); border-color:rgba(234,57,53,0.15); }
+
+    /* Rank */
+    .lb-rank { font-size:0.95rem; font-weight:900; color:var(--gray2); }
+    .lb-rank.r1 { color:var(--gold); font-size:1.2rem; }
+    .lb-rank.r2 { color:var(--silver); }
+    .lb-rank.r3 { color:var(--bronze); }
+
+    /* Jugador */
+    .lb-player { display:flex; align-items:center; gap:12px; min-width:0; }
+    .lb-avatar {
+      width:36px; height:36px; border-radius:50%; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:0.9rem; font-weight:900; color:#fff; text-transform:uppercase;
+      background:var(--gradient);
+    }
+    .lb-avatar.r1 { background:linear-gradient(135deg,#f59e0b,#d97706); }
+    .lb-avatar.r2 { background:linear-gradient(135deg,#94a3b8,#64748b); }
+    .lb-avatar.r3 { background:linear-gradient(135deg,#cd7c2f,#92400e); }
+    .lb-player-name { font-size:0.9rem; font-weight:700; color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .lb-player-full { font-size:0.72rem; color:var(--gray2); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    /* Celdas */
+    .lb-cell { font-size:0.85rem; color:var(--gray); }
+    .lb-cell.pts { font-size:1rem; font-weight:900; color:var(--white); }
+    .lb-cell.pts.r1 { color:var(--gold); }
+    .lb-cell.pts.r2 { color:var(--silver); }
+    .lb-cell.pts.r3 { color:var(--bronze); }
+    .lb-cell.wins { font-weight:700; color:var(--green); }
+    .lb-wins-detail { font-size:0.68rem; color:var(--gray2); margin-top:1px; }
+
+    /* Crown icons */
+    .crown { font-size:0.75rem; margin-left:4px; }
+
+    /* Skeleton */
+    .skeleton-row { display:grid; padding:14px 20px; border-bottom:1px solid rgba(255,255,255,0.04); }
+    .skel { height:12px; background:rgba(255,255,255,0.05); border-radius:4px; animation:shimmer 1.5s infinite; }
+    @keyframes shimmer { 0%,100%{opacity:.5} 50%{opacity:1} }
+
+    /* Empty */
+    .empty-lb { text-align:center; padding:60px 20px; }
+    .empty-lb .e-icon { font-size:3rem; opacity:.3; display:block; margin-bottom:12px; }
+    .empty-lb p { color:var(--gray2); }
+
+    /* ── INFO PUNTOS ── */
+    .points-info { background:var(--black2); border:var(--border); border-radius:var(--radius-lg); padding:24px; margin-bottom:24px; }
+    .points-info-title { font-size:0.72rem; font-weight:800; color:var(--red); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:16px; }
+    .points-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    .points-item { background:var(--black3); border:var(--border); border-radius:var(--radius); padding:14px; text-align:center; }
+    .points-item-pos { font-size:1.4rem; margin-bottom:6px; }
+    .points-item-val { font-size:1.3rem; font-weight:900; }
+    .points-item-val.g { color:var(--gold); }
+    .points-item-val.s { color:var(--silver); }
+    .points-item-val.b { color:var(--bronze); }
+    .points-item-val.p { color:var(--gray); }
+    .points-item-label { font-size:0.68rem; color:var(--gray2); text-transform:uppercase; letter-spacing:0.08em; margin-top:3px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:900px) {
+      .nav-links { display:none; }
+      .lb-cols { grid-template-columns:44px 1fr 70px 70px 80px; }
+      .lb-hide-mobile { display:none; }
+      .points-grid { grid-template-columns:repeat(2,1fr); }
+    }
+    @media (max-width:600px) {
+      .lb-cols { grid-template-columns:40px 1fr 60px 80px; }
+      .podium { flex-direction:column; }
+      .podium-card { min-width:0; width:100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <svg width="34" height="34" viewBox="0 0 38 38" fill="none">
+        <defs><linearGradient id="ng" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ea3935"/><stop offset="100%" stop-color="#ec622b"/></linearGradient></defs>
+        <path d="M19 2L4 9v10c0 8.5 6.4 16.4 15 18.5C28.6 35.4 35 27.5 35 19V9L19 2z" fill="url(#ng)" opacity="0.15"/>
+        <path d="M19 2L4 9v10c0 8.5 6.4 16.4 15 18.5C28.6 35.4 35 27.5 35 19V9L19 2z" fill="none" stroke="url(#ng)" stroke-width="1.5"/>
+        <path d="M10 26 L15 12 L19 22 M12.5 21 L17.5 21" stroke="url(#ng)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M20 12 L24 22 L28 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
+      </svg>
+      <span class="nav-wordmark">Arena Versus</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Inicio</a>
+      <a href="torneos.html">Torneos</a>
+      <a href="clasificacion.html" class="active">Clasificación</a>
+    </div>
+    <div class="nav-right">
+      <a href="login.html"    id="loginBtn"    style="color:var(--gray2);font-size:0.82rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:8px 14px;border-radius:6px;transition:var(--transition)">Iniciar sesión</a>
+      <a href="admin.html"    id="adminBtn"    style="display:none;color:var(--red);font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:7px 13px;border-radius:6px;border:1px solid rgba(234,57,53,0.35)">⚙ Admin</a>
+      <a href="register.html" id="registerBtn" class="btn btn-primary">Registrarse</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="page-hero">
+  <div class="container">
+    <div class="hero-tag">Ranking Oficial LATAM</div>
+    <h1>Clasificación<br/><span>Global Arena Versus</span></h1>
+    <p>Los mejores jugadores de LATAM. Puntos acumulados por posición en torneos oficiales.</p>
+
+    <!-- Podio top 3 -->
+    <div class="podium" id="podium">
+      <div style="color:var(--gray2);font-size:0.85rem;padding:20px 0">Cargando ranking...</div>
+    </div>
+  </div>
+</section>
+
+<!-- FILTROS -->
+<div class="filters-bar">
+  <div class="filters-inner">
+    <div class="tab-group">
+      <button class="tab-btn active" onclick="setTab('global',this)">🌎 Global</button>
+      <button class="tab-btn" onclick="setTab('pais',this)">🗺️ Por País</button>
+      <button class="tab-btn" onclick="setTab('juego',this)">🎮 Por Juego</button>
+    </div>
+    <select class="filter-select" id="filterGame" onchange="applyFilters()" style="display:none">
+      <option value="">Todos los juegos</option>
+      <option value="Valorant">🎯 Valorant</option>
+      <option value="FC26">⚽ FC 26</option>
+      <option value="League of Legends">⚔️ LoL</option>
+      <option value="Fortnite">🔫 Fortnite</option>
+      <option value="Just Dance">💃 Just Dance</option>
+      <option value="Formula 1">🏎️ F1</option>
+      <option value="Free Fire">🔥 Free Fire</option>
+      <option value="PUBG Mobile">📱 PUBG Mobile</option>
+    </select>
+    <select class="filter-select" id="filterCountry" onchange="applyFilters()" style="display:none">
+      <option value="">Todos los países</option>
+      <option value="CO">🇨🇴 Colombia</option>
+      <option value="MX">🇲🇽 México</option>
+      <option value="AR">🇦🇷 Argentina</option>
+      <option value="CL">🇨🇱 Chile</option>
+      <option value="PE">🇵🇪 Perú</option>
+      <option value="VE">🇻🇪 Venezuela</option>
+      <option value="EC">🇪🇨 Ecuador</option>
+      <option value="ES">🇪🇸 España</option>
+    </select>
+    <span class="filter-results">Mostrando <span id="resultCount">—</span> jugadores</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-content">
+
+  <!-- Info de puntos -->
+  <div class="points-info">
+    <div class="points-info-title">⚡ Sistema de Puntos</div>
+    <div class="points-grid">
+      <div class="points-item">
+        <div class="points-item-pos">🥇</div>
+        <div class="points-item-val g">100</div>
+        <div class="points-item-label">Campeón</div>
+      </div>
+      <div class="points-item">
+        <div class="points-item-pos">🥈</div>
+        <div class="points-item-val s">60</div>
+        <div class="points-item-label">Subcampeón</div>
+      </div>
+      <div class="points-item">
+        <div class="points-item-pos">🥉</div>
+        <div class="points-item-val b">40</div>
+        <div class="points-item-label">Tercer lugar</div>
+      </div>
+      <div class="points-item">
+        <div class="points-item-pos">🎮</div>
+        <div class="points-item-val p">10</div>
+        <div class="points-item-label">Participación</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="leaderboard-wrap">
+    <div class="lb-header lb-cols">
+      <span>#</span>
+      <span>Jugador</span>
+      <span class="lb-hide-mobile">País</span>
+      <span class="lb-hide-mobile">Torneos</span>
+      <span>Victorias</span>
+      <span class="lb-hide-mobile">2° / 3°</span>
+      <span>Puntos</span>
+    </div>
+
+    <!-- Skeleton -->
+    <div id="lbSkeleton">
+      <div class="skeleton-row lb-cols" style="border-bottom:1px solid rgba(255,255,255,0.04)">
+        <div class="skel" style="width:24px;height:24px;border-radius:50%"></div>
+        <div style="display:flex;align-items:center;gap:12px"><div class="skel" style="width:36px;height:36px;border-radius:50%;flex-shrink:0"></div><div><div class="skel" style="width:120px;margin-bottom:5px"></div><div class="skel" style="width:80px;height:10px"></div></div></div>
+        <div class="skel lb-hide-mobile" style="width:60px"></div>
+        <div class="skel lb-hide-mobile" style="width:30px"></div>
+        <div class="skel" style="width:30px"></div>
+        <div class="skel lb-hide-mobile" style="width:40px"></div>
+        <div class="skel" style="width:50px"></div>
+      </div>
+      <div class="skeleton-row lb-cols" style="opacity:.6;border-bottom:1px solid rgba(255,255,255,0.04)">
+        <div class="skel" style="width:24px;height:24px;border-radius:50%"></div>
+        <div style="display:flex;align-items:center;gap:12px"><div class="skel" style="width:36px;height:36px;border-radius:50%;flex-shrink:0"></div><div><div class="skel" style="width:100px;margin-bottom:5px"></div><div class="skel" style="width:70px;height:10px"></div></div></div>
+        <div class="skel lb-hide-mobile" style="width:60px"></div>
+        <div class="skel lb-hide-mobile" style="width:30px"></div>
+        <div class="skel" style="width:30px"></div>
+        <div class="skel lb-hide-mobile" style="width:40px"></div>
+        <div class="skel" style="width:50px"></div>
+      </div>
+      <div class="skeleton-row lb-cols" style="opacity:.35">
+        <div class="skel" style="width:24px;height:24px;border-radius:50%"></div>
+        <div style="display:flex;align-items:center;gap:12px"><div class="skel" style="width:36px;height:36px;border-radius:50%;flex-shrink:0"></div><div><div class="skel" style="width:90px;margin-bottom:5px"></div><div class="skel" style="width:60px;height:10px"></div></div></div>
+        <div class="skel lb-hide-mobile" style="width:60px"></div>
+        <div class="skel lb-hide-mobile" style="width:30px"></div>
+        <div class="skel" style="width:30px"></div>
+        <div class="skel lb-hide-mobile" style="width:40px"></div>
+        <div class="skel" style="width:50px"></div>
+      </div>
+    </div>
+
+    <!-- Tabla dinámica -->
+    <div id="lbBody" style="display:none"></div>
+
+    <!-- Empty -->
+    <div class="empty-lb" id="lbEmpty" style="display:none">
+      <span class="e-icon">🏆</span>
+      <p>Aún no hay resultados de torneos registrados.</p>
+      <p style="margin-top:8px;font-size:0.8rem">Los puntos aparecerán cuando el admin registre los resultados de los torneos finalizados.</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  const sb = supabase.createClient(
+    'https://ambmqayzxqylztbylnkq.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtYm1xYXl6eHF5bHp0YnlsbmtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2OTE4NjMsImV4cCI6MjA4OTI2Nzg2M30.GC8ZveqhZ_SYb5gfV2sN_sTdPQuud4JSuIZuZ5h-mAU',
+    { auth: { persistSession: true } }
+  );
+
+  const COUNTRIES = { CO:'🇨🇴 Colombia',MX:'🇲🇽 México',AR:'🇦🇷 Argentina',CL:'🇨🇱 Chile',PE:'🇵🇪 Perú',VE:'🇻🇪 Venezuela',EC:'🇪🇨 Ecuador',ES:'🇪🇸 España',PA:'🇵🇦 Panamá',BO:'🇧🇴 Bolivia',UY:'🇺🇾 Uruguay',OTHER:'🌎 LATAM' };
+
+  let allData   = [];
+  let currentTab= 'global';
+  let myId      = null;
+
+  // ── INIT ─────────────────────────────────────────────
+  async function init() {
+    // Sesión y datos en paralelo
+    const [sessionRes, dataRes] = await Promise.all([
+      sb.auth.getSession(),
+      sb.from('leaderboard_global').select('*').order('total_points',{ascending:false})
+    ]);
+
+    // Sesión
+    const session = sessionRes.data.session;
+    if (session) {
+      myId = session.user.id;
+      document.getElementById('loginBtn').style.display    = 'none';
+      document.getElementById('registerBtn').textContent   = 'Mi perfil';
+      document.getElementById('registerBtn').href          = 'dashboard.html';
+      const { data: adminRow } = await sb.from('admins').select('email').eq('email',session.user.email).maybeSingle();
+      if (adminRow) document.getElementById('adminBtn').style.display = 'inline-flex';
+    }
+
+    // Datos
+    document.getElementById('lbSkeleton').style.display = 'none';
+    document.getElementById('lbBody').style.display     = 'block';
+
+    if (dataRes.error || !dataRes.data || !dataRes.data.length) {
+      document.getElementById('lbEmpty').style.display = 'block';
+      document.getElementById('podium').innerHTML = `<p style="color:var(--gray2);font-size:0.85rem">Aún no hay resultados registrados.</p>`;
+      return;
+    }
+
+    allData = dataRes.data;
+    renderPodium(allData);
+    applyFilters();
+  }
+
+  // ── PODIO TOP 3 ──────────────────────────────────────
+  function renderPodium(data) {
+    const top3  = data.slice(0,3);
+    const classes = ['gold','silver','bronze'];
+    const ranks   = ['🥇','🥈','🥉'];
+    const el = document.getElementById('podium');
+    if (!top3.length) { el.innerHTML='<p style="color:var(--gray2)">Sin datos aún.</p>'; return; }
+    el.innerHTML = top3.map((p,i) => `
+      <div class="podium-card ${classes[i]}">
+        <div class="podium-rank">${ranks[i]}</div>
+        <div class="podium-avatar ${classes[i]}">${(p.username||'?')[0].toUpperCase()}</div>
+        <div class="podium-info">
+          <div class="podium-username">${p.username}</div>
+          <div class="podium-country">${COUNTRIES[p.country]||p.country||'LATAM'} · ${p.wins||0} victorias</div>
+        </div>
+        <div class="podium-pts">
+          <div class="podium-pts-val ${classes[i]}">${p.total_points||0}</div>
+          <div class="podium-pts-label">puntos</div>
+        </div>
+      </div>`).join('');
+  }
+
+  // ── TABS ─────────────────────────────────────────────
+  function setTab(tab, el) {
+    currentTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('filterGame').style.display    = tab==='juego' ? 'block' : 'none';
+    document.getElementById('filterCountry').style.display = tab==='pais'  ? 'block' : 'none';
+    applyFilters();
+  }
+
+  // ── FILTROS ───────────────────────────────────────────
+  async function applyFilters() {
+    const game    = document.getElementById('filterGame').value;
+    const country = document.getElementById('filterCountry').value;
+
+    let data = [];
+    if (currentTab === 'global') {
+      data = allData;
+    } else if (currentTab === 'juego') {
+      // Cargar vista por juego
+      let q = sb.from('leaderboard').select('*').order('total_points',{ascending:false});
+      if (game) q = q.eq('game', game);
+      const { data: d } = await q;
+      data = d || [];
+    } else if (currentTab === 'pais') {
+      let filtered = allData;
+      if (country) filtered = allData.filter(r => r.country === country);
+      data = filtered;
+    }
+
+    document.getElementById('resultCount').textContent = data.length;
+    renderTable(data);
+    if (currentTab === 'global') renderPodium(data);
+  }
+
+  // ── TABLA ─────────────────────────────────────────────
+  function renderTable(data) {
+    const body  = document.getElementById('lbBody');
+    const empty = document.getElementById('lbEmpty');
+    if (!data.length) { body.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display = 'none';
+
+    body.innerHTML = data.map((p, i) => {
+      const rank     = i + 1;
+      const rankClass= rank===1?'r1':rank===2?'r2':rank===3?'r3':'';
+      const rowClass = rank===1?'top1':rank===2?'top2':rank===3?'top3': (p.player_id===myId?'mine':'');
+      const crown    = rank===1?' 👑':'';
+      const country  = COUNTRIES[p.country] || p.country || '🌎';
+      const wins2nd  = p.second_place || 0;
+      const wins3rd  = p.third_place  || 0;
+
+      return `
+        <div class="lb-row lb-cols ${rowClass}">
+          <div class="lb-rank ${rankClass}">${rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank}</div>
+          <div class="lb-player">
+            <div class="lb-avatar ${rankClass}">${(p.username||'?')[0].toUpperCase()}</div>
+            <div>
+              <div class="lb-player-name">${p.username||'—'}${crown}</div>
+              <div class="lb-player-full">${p.full_name||''}</div>
+            </div>
+          </div>
+          <div class="lb-cell lb-hide-mobile">${country}</div>
+          <div class="lb-cell lb-hide-mobile">${p.tournaments_played||0}</div>
+          <div class="lb-cell wins">
+            ${p.wins||0}
+            <div class="lb-wins-detail">victorias</div>
+          </div>
+          <div class="lb-cell lb-hide-mobile">${wins2nd} / ${wins3rd}</div>
+          <div class="lb-cell pts ${rankClass}">${p.total_points||0}</div>
+        </div>`;
+    }).join('');
+  }
+
+  init();
+</script>
+</body>
+</html>
