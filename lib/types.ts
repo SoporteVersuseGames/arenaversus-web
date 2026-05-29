@@ -42,6 +42,6 @@ export interface MatchResult {
   score: string | null
   round: number | null
   played_at: string
-  tournaments?: { name: string; game: string } | null
-  opponent?: { username: string | null } | null
+  tournaments: { name: string; game: string } | null
+  opponent: { username: string | null } | null
 }
