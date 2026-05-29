@@ -19,7 +19,7 @@ export default function AdminPage() {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.push('/login'); return }
-      const { data: adminData } = await supabase.from('admins').select('id').eq('user_id', session.user.id).single()
+      const { data: adminData } = await supabase.from('admins').select('id').eq('email', session.user.email ?? '').single()
       if (!adminData) { router.push('/'); return }
       loadTournaments()
       const { data: playersData } = await supabase.from('profiles').select('*').order('username')

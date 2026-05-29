@@ -19,7 +19,7 @@ export default function Navbar() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       if (session?.user) {
-        checkAdmin(session.user.id)
+        checkAdmin(session.user.email ?? '')
         loadUsername(session.user.id)
       }
     })
@@ -27,7 +27,7 @@ export default function Navbar() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null)
       if (session?.user) {
-        checkAdmin(session.user.id)
+        checkAdmin(session.user.email ?? '')
         loadUsername(session.user.id)
       } else {
         setIsAdmin(false)
@@ -40,9 +40,9 @@ export default function Navbar() {
     return () => { subscription.unsubscribe(); window.removeEventListener('scroll', onScroll) }
   }, [])
 
-  async function checkAdmin(userId: string) {
+  async function checkAdmin(email: string) {
     const supabase = createClient()
-    const { data } = await supabase.from('admins').select('id').eq('user_id', userId).single()
+    const { data } = await supabase.from('admins').select('id').eq('email', email).single()
     setIsAdmin(!!data)
   }
 
