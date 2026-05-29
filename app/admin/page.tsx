@@ -12,6 +12,7 @@ export default function AdminPage() {
   const [players, setPlayers] = useState<Profile[]>([])
   const [registeringResult, setRegisteringResult] = useState(false)
   const [resultOk, setResultOk] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -36,10 +37,10 @@ export default function AdminPage() {
   }
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault(); setCreating(true)
+    e.preventDefault(); setCreating(true); setCreateError(null)
     const supabase = createClient()
     const fd = new FormData(e.currentTarget)
-    await supabase.from('tournaments').insert({
+    const { error } = await supabase.from('tournaments').insert({
       title: fd.get('name') as string,
       game: fd.get('game') as string,
       max_players: parseInt(fd.get('maxPlayers') as string),
@@ -48,7 +49,8 @@ export default function AdminPage() {
       status: 'upcoming',
       current_players: 0,
     });
-    (e.target as HTMLFormElement).reset()
+    if (error) { setCreateError(`${error.code}: ${error.message}`); setCreating(false); return }
+    ;(e.target as HTMLFormElement).reset()
     setCreating(false); loadTournaments()
   }
 
@@ -128,6 +130,7 @@ export default function AdminPage() {
             </button>
           </div>
         </form>
+        {createError && <p className="mt-3 text-red-400 text-sm font-mono">{createError}</p>}
       </div>
 
       <div className="bg-[#1c1c1c] border border-white/7 rounded-xl p-6 mb-8">
