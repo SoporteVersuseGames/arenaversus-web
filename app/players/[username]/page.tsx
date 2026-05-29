@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { GAMES_MAP, COUNTRIES_MAP, formatDate } from '@/utils/constants'
-import type { MatchResult } from '@/lib/types'
+import type { MatchResult, Profile } from '@/lib/types'
 
 interface Props {
   params: Promise<{ username: string }>
@@ -12,21 +12,27 @@ export default async function PlayerProfilePage({ params }: Props) {
   const { username } = await params
   const supabase = await createClient()
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('username', username)
-    .single()
+  let profileData: Profile | null = null
+  try {
+    const { data } = await supabase.from('profiles').select('*').eq('username', username).single()
+    profileData = data
+  } catch {
+    // profile not found or network error
+  }
+  if (!profileData) notFound()
+  const profile = profileData
 
-  if (!profile) notFound()
-
-  const { data: matchResultsRaw } = await supabase
-    .from('match_results')
-    .select('*, tournaments(name, game), opponent:profiles!match_results_opponent_id_fkey(username)')
-    .eq('player_id', profile.id)
-    .order('played_at', { ascending: false })
-
-  const matchResults: MatchResult[] = (matchResultsRaw ?? []) as MatchResult[]
+  let matchResults: MatchResult[] = []
+  try {
+    const { data } = await supabase
+      .from('match_results')
+      .select('*, tournaments(name, game), opponent:profiles!match_results_opponent_id_fkey(username)')
+      .eq('player_id', profile.id)
+      .order('played_at', { ascending: false })
+    matchResults = (data ?? []) as MatchResult[]
+  } catch {
+    matchResults = []
+  }
 
   const total = matchResults.length
   const wins = matchResults.filter(m => m.result === 'win').length
@@ -63,11 +69,12 @@ export default async function PlayerProfilePage({ params }: Props) {
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         {[
           { label: 'Winrate', value: `${winrate}%`, icon: '📈' },
           { label: 'Victorias', value: wins, icon: '✅' },
           { label: 'Derrotas', value: losses, icon: '❌' },
+          { label: 'Empates', value: draws, icon: '🤝' },
           { label: 'Partidas', value: total, icon: '🎮' },
         ].map(({ label, value, icon }) => (
           <div key={label} className="bg-[#1c1c1c] border border-white/7 rounded-xl p-4 text-center">
