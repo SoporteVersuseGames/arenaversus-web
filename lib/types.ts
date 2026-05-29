@@ -32,3 +32,16 @@ export interface PlayerGame {
   player_id: string
   game_name: string
 }
+
+export interface MatchResult {
+  id: string
+  tournament_id: string | null
+  player_id: string
+  opponent_id: string | null
+  result: 'win' | 'loss' | 'draw'
+  score: string | null
+  round: number | null
+  played_at: string
+  tournaments?: { name: string; game: string } | null
+  opponent?: { username: string | null } | null
+}
