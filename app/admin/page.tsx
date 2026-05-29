@@ -21,7 +21,7 @@ export default function AdminPage() {
       loadTournaments()
     }
     init()
-  }, [])
+  }, [router])
 
   async function loadTournaments() {
     const supabase = createClient()

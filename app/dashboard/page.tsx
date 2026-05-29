@@ -4,14 +4,16 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { GAMES_MAP, STATUS_LABELS, STATUS_COLORS, COUNTRIES_MAP, formatDate } from '@/utils/constants'
-import type { Profile, Registration } from '@/lib/types'
+import type { Profile, Registration, Tournament } from '@/lib/types'
 
 type Panel = 'overview' | 'torneos' | 'perfil'
+
+type RegistrationWithTournament = Registration & { tournaments: Tournament | null }
 
 export default function DashboardPage() {
   const [panel, setPanel] = useState<Panel>('overview')
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [registrations, setRegistrations] = useState<Registration[]>([])
+  const [registrations, setRegistrations] = useState<RegistrationWithTournament[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saveOk, setSaveOk] = useState(false)
@@ -29,11 +31,11 @@ export default function DashboardPage() {
         supabase.from('registrations').select('*, tournaments(*)').eq('player_id', userId),
       ])
       setProfile(profileRes.data)
-      setRegistrations(torneosRes.data ?? [])
+      setRegistrations((torneosRes.data ?? []) as RegistrationWithTournament[])
       setLoading(false)
     }
     init()
-  }, [])
+  }, [router])
 
   async function handleSaveProfile(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -131,8 +133,8 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {[
                 { icon: '🏆', value: registrations.length, label: 'Torneos Inscritos' },
-                { icon: '✅', value: registrations.filter(r => (r.tournaments as any)?.status === 'finished').length, label: 'Torneos Jugados' },
-                { icon: '⏳', value: registrations.filter(r => ['open', 'upcoming', 'in_progress'].includes((r.tournaments as any)?.status)).length, label: 'Por Jugar' },
+                { icon: '✅', value: registrations.filter(r => r.tournaments?.status === 'finished').length, label: 'Torneos Jugados' },
+                { icon: '⏳', value: registrations.filter(r => ['open', 'upcoming', 'in_progress'].includes(r.tournaments?.status ?? '')).length, label: 'Por Jugar' },
               ].map(({ icon, value, label }) => (
                 <div key={label} className="bg-[#1c1c1c] border border-white/7 rounded-xl p-4 text-center">
                   <div className="text-2xl mb-2">{icon}</div>
@@ -157,7 +159,7 @@ export default function DashboardPage() {
                 <h3 className="font-bold text-white mb-4">Actividad Reciente</h3>
                 <div className="space-y-3">
                   {registrations.slice(0, 3).map(r => {
-                    const t = r.tournaments as any
+                    const t = r.tournaments
                     return (
                       <div key={r.id} className="flex items-center gap-3 text-sm">
                         <div className="w-8 h-8 rounded-lg bg-[#ea3935]/10 flex items-center justify-center">🏆</div>
@@ -165,8 +167,8 @@ export default function DashboardPage() {
                           <div className="font-medium text-white truncate">{t?.name}</div>
                           <div className="text-gray-500 text-xs">{formatDate(t?.date)}</div>
                         </div>
-                        <span className={`text-xs px-2 py-1 rounded-full ${STATUS_COLORS[t?.status] ?? 'bg-white/10 text-gray-400'}`}>
-                          {STATUS_LABELS[t?.status] ?? t?.status}
+                        <span className={`text-xs px-2 py-1 rounded-full ${STATUS_COLORS[t?.status ?? ''] ?? 'bg-white/10 text-gray-400'}`}>
+                          {STATUS_LABELS[t?.status ?? ''] ?? t?.status}
                         </span>
                       </div>
                     )
@@ -190,20 +192,20 @@ export default function DashboardPage() {
                 <Link href="/torneos" className="inline-block mt-4 px-6 py-2.5 rounded-lg bg-av-gradient text-white text-sm font-semibold">Ver Torneos</Link>
               </div>
             ) : registrations.map(r => {
-              const t = r.tournaments as any
+              const t = r.tournaments
               return (
                 <div key={r.id} className="bg-[#1c1c1c] border border-white/7 rounded-xl p-5 flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-av-gradient flex items-center justify-center text-xl">
-                    {(GAMES_MAP[t?.game] ?? '🎮').split(' ')[0]}
+                    {(GAMES_MAP[t?.game ?? ''] ?? '🎮').split(' ')[0]}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-bold text-white">{t?.name}</div>
                     <div className="text-gray-400 text-sm">{formatDate(t?.date)} · {t?.current_players}/{t?.max_players}</div>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full shrink-0 ${STATUS_COLORS[t?.status] ?? 'bg-white/10 text-gray-400'}`}>
-                    {STATUS_LABELS[t?.status] ?? t?.status}
+                  <span className={`text-xs px-2 py-1 rounded-full shrink-0 ${STATUS_COLORS[t?.status ?? ''] ?? 'bg-white/10 text-gray-400'}`}>
+                    {STATUS_LABELS[t?.status ?? ''] ?? t?.status}
                   </span>
-                  {['open', 'upcoming'].includes(t?.status) && (
+                  {t && ['open', 'upcoming'].includes(t.status) && (
                     <button onClick={() => handleUnregister(r.id, t.id, t.current_players)}
                       className="text-gray-500 hover:text-[#ea3935] text-xs transition-colors shrink-0">Salir</button>
                   )}
