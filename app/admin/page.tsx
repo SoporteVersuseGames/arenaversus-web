@@ -3,12 +3,15 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { GAMES_MAP, STATUS_LABELS, STATUS_COLORS, formatDate } from '@/utils/constants'
-import type { Tournament } from '@/lib/types'
+import type { Tournament, Profile } from '@/lib/types'
 
 export default function AdminPage() {
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
+  const [players, setPlayers] = useState<Profile[]>([])
+  const [registeringResult, setRegisteringResult] = useState(false)
+  const [resultOk, setResultOk] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -19,6 +22,8 @@ export default function AdminPage() {
       const { data: adminData } = await supabase.from('admins').select('id').eq('user_id', session.user.id).single()
       if (!adminData) { router.push('/'); return }
       loadTournaments()
+      const { data: playersData } = await supabase.from('profiles').select('*').order('username')
+      setPlayers(playersData ?? [])
     }
     init()
   }, [router])
@@ -58,6 +63,25 @@ export default function AdminPage() {
     const supabase = createClient()
     await supabase.from('tournaments').delete().eq('id', id)
     setTournaments(prev => prev.filter(t => t.id !== id))
+  }
+
+  async function handleRegisterResult(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setRegisteringResult(true)
+    const supabase = createClient()
+    const fd = new FormData(e.currentTarget)
+    await supabase.from('match_results').insert({
+      tournament_id: (fd.get('tournament_id') as string) || null,
+      player_id: fd.get('player_id') as string,
+      opponent_id: (fd.get('opponent_id') as string) || null,
+      result: fd.get('result') as string,
+      score: (fd.get('score') as string) || null,
+      round: fd.get('round') ? parseInt(fd.get('round') as string) : null,
+    });
+    (e.target as HTMLFormElement).reset()
+    setRegisteringResult(false)
+    setResultOk(true)
+    setTimeout(() => setResultOk(false), 3000)
   }
 
   if (loading) return (
@@ -102,6 +126,55 @@ export default function AdminPage() {
             <button type="submit" disabled={creating} className="w-full py-2 rounded-lg bg-av-gradient text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity">
               {creating ? 'Creando...' : '+ Crear Torneo'}
             </button>
+          </div>
+        </form>
+      </div>
+
+      <div className="bg-[#1c1c1c] border border-white/7 rounded-xl p-6 mb-8">
+        <h2 className="font-bold text-white mb-4">Registrar Resultado de Partida</h2>
+        <form onSubmit={handleRegisterResult} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-gray-400 text-xs mb-1">Torneo</label>
+            <select name="tournament_id" className="w-full bg-[#111111] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#ea3935]/50">
+              <option value="">Sin torneo</option>
+              {tournaments.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-gray-400 text-xs mb-1">Jugador *</label>
+            <select name="player_id" required className="w-full bg-[#111111] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#ea3935]/50">
+              <option value="">Seleccionar jugador</option>
+              {players.map(p => <option key={p.id} value={p.id}>{p.username ?? p.id}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-gray-400 text-xs mb-1">Oponente</label>
+            <select name="opponent_id" className="w-full bg-[#111111] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#ea3935]/50">
+              <option value="">Sin oponente</option>
+              {players.map(p => <option key={p.id} value={p.id}>{p.username ?? p.id}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-gray-400 text-xs mb-1">Resultado *</label>
+            <select name="result" required className="w-full bg-[#111111] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#ea3935]/50">
+              <option value="win">Victoria</option>
+              <option value="loss">Derrota</option>
+              <option value="draw">Empate</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-gray-400 text-xs mb-1">Marcador</label>
+            <input name="score" placeholder="2-1" className="w-full bg-[#111111] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#ea3935]/50" />
+          </div>
+          <div>
+            <label className="block text-gray-400 text-xs mb-1">Ronda</label>
+            <input name="round" type="number" min={1} placeholder="1" className="w-full bg-[#111111] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#ea3935]/50" />
+          </div>
+          <div className="flex items-end gap-3 lg:col-span-3">
+            <button type="submit" disabled={registeringResult} className="px-6 py-2 rounded-lg bg-av-gradient text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity">
+              {registeringResult ? 'Guardando...' : '+ Registrar Resultado'}
+            </button>
+            {resultOk && <span className="text-green-400 text-sm">✅ Resultado registrado</span>}
           </div>
         </form>
       </div>
