@@ -4,9 +4,9 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { GAMES_MAP, STATUS_LABELS, STATUS_COLORS, COUNTRIES_MAP, formatDate } from '@/utils/constants'
-import type { Profile, Registration, Tournament } from '@/lib/types'
+import type { Profile, Registration, Tournament, MatchResult } from '@/lib/types'
 
-type Panel = 'overview' | 'torneos' | 'perfil'
+type Panel = 'overview' | 'torneos' | 'perfil' | 'stats'
 
 type RegistrationWithTournament = Registration & { tournaments: Tournament | null }
 
@@ -18,6 +18,7 @@ export default function DashboardPage() {
   const [saving, setSaving] = useState(false)
   const [saveOk, setSaveOk] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [matchResults, setMatchResults] = useState<MatchResult[]>([])
   const router = useRouter()
 
   useEffect(() => {
@@ -26,12 +27,17 @@ export default function DashboardPage() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { router.push('/login'); return }
       const userId = session.user.id
-      const [profileRes, torneosRes] = await Promise.all([
+      const [profileRes, torneosRes, statsRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', userId).single(),
         supabase.from('registrations').select('*, tournaments(*)').eq('player_id', userId),
+        supabase.from('match_results')
+          .select('*, tournaments(name, game), opponent:profiles!match_results_opponent_id_fkey(username)')
+          .eq('player_id', userId)
+          .order('played_at', { ascending: false }),
       ])
       setProfile(profileRes.data)
       setRegistrations((torneosRes.data ?? []) as RegistrationWithTournament[])
+      setMatchResults((statsRes.data ?? []) as MatchResult[])
       setLoading(false)
     }
     init()
@@ -82,6 +88,7 @@ export default function DashboardPage() {
   const navItems = [
     { key: 'overview' as Panel, icon: '🏠', label: 'Resumen', badge: undefined },
     { key: 'torneos' as Panel, icon: '🏆', label: 'Mis Torneos', badge: registrations.length },
+    { key: 'stats' as Panel, icon: '📈', label: 'Mis Stats', badge: undefined },
     { key: 'perfil' as Panel, icon: '👤', label: 'Editar Perfil', badge: undefined },
   ]
 
@@ -123,7 +130,7 @@ export default function DashboardPage() {
         <div className="md:hidden flex items-center gap-3 mb-6">
           <button onClick={() => setSidebarOpen(true)} className="text-white p-2">☰</button>
           <h1 className="font-bold text-white text-lg">
-            {panel === 'overview' ? 'Resumen' : panel === 'torneos' ? 'Mis Torneos' : 'Editar Perfil'}
+            {panel === 'overview' ? 'Resumen' : panel === 'torneos' ? 'Mis Torneos' : panel === 'stats' ? 'Mis Stats' : 'Editar Perfil'}
           </h1>
         </div>
 
@@ -212,6 +219,87 @@ export default function DashboardPage() {
                 </div>
               )
             })}
+          </div>
+        )}
+
+        {panel === 'stats' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-black text-white hidden md:block">Mis Stats</h1>
+              {profile?.username && (
+                <Link href={`/players/${profile.username}`} className="text-sm text-[#ea3935] hover:underline">
+                  Ver perfil público →
+                </Link>
+              )}
+            </div>
+            {(() => {
+              const total = matchResults.length
+              const wins = matchResults.filter(m => m.result === 'win').length
+              const losses = matchResults.filter(m => m.result === 'loss').length
+              const draws = matchResults.filter(m => m.result === 'draw').length
+              const winrate = total > 0 ? Math.round((wins / total) * 100) : 0
+              const gameCount = matchResults.reduce((acc, m) => {
+                const game = m.tournaments?.game ?? ''
+                if (game) acc[game] = (acc[game] ?? 0) + 1
+                return acc
+              }, {} as Record<string, number>)
+              const mainGame = Object.entries(gameCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? ''
+              return (
+                <>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    {[
+                      { icon: '📈', value: `${winrate}%`, label: 'Winrate' },
+                      { icon: '✅', value: wins, label: 'Victorias' },
+                      { icon: '❌', value: losses, label: 'Derrotas' },
+                      { icon: '🤝', value: draws, label: 'Empates' },
+                      { icon: '🎮', value: total, label: 'Partidas' },
+                    ].map(({ icon, value, label }) => (
+                      <div key={label} className="bg-[#1c1c1c] border border-white/7 rounded-xl p-4 text-center">
+                        <div className="text-2xl mb-2">{icon}</div>
+                        <div className="text-2xl font-black text-gradient">{value}</div>
+                        <div className="text-gray-400 text-xs mt-1">{label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {mainGame && (
+                    <div className="bg-[#1c1c1c] border border-white/7 rounded-xl p-4 flex items-center gap-4">
+                      <div className="text-3xl">{GAMES_MAP[mainGame]?.split(' ')[0]}</div>
+                      <div>
+                        <div className="text-xs text-gray-500">Juego principal</div>
+                        <div className="font-bold text-white">{GAMES_MAP[mainGame]?.split(' ').slice(1).join(' ') ?? mainGame}</div>
+                      </div>
+                    </div>
+                  )}
+                  <div className="bg-[#1c1c1c] border border-white/7 rounded-xl overflow-hidden">
+                    <div className="px-6 py-4 border-b border-white/7">
+                      <h3 className="font-bold text-white">Historial Reciente</h3>
+                    </div>
+                    {matchResults.length === 0 ? (
+                      <div className="text-center py-10 text-gray-500">Sin partidas registradas aún</div>
+                    ) : (
+                      <div className="divide-y divide-white/5">
+                        {matchResults.slice(0, 10).map(m => (
+                          <div key={m.id} className="px-6 py-3 flex items-center gap-4">
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                              m.result === 'win' ? 'bg-green-500/20 text-green-400' :
+                              m.result === 'loss' ? 'bg-red-500/20 text-red-400' :
+                              'bg-white/10 text-gray-400'
+                            }`}>
+                              {m.result === 'win' ? 'Victoria' : m.result === 'loss' ? 'Derrota' : 'Empate'}
+                            </span>
+                            <div className="flex-1 min-w-0 text-sm">
+                              <span className="text-white">vs {m.opponent?.username ?? 'Oponente'}</span>
+                              <span className="text-gray-500 ml-2">{m.tournaments?.name}</span>
+                            </div>
+                            <span className="text-gray-500 text-xs">{formatDate(m.played_at)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )
+            })()}
           </div>
         )}
 
