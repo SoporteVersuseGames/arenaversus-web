@@ -30,7 +30,7 @@ export default function AdminPage() {
 
   async function loadTournaments() {
     const supabase = createClient()
-    const { data } = await supabase.from('tournaments').select('*').order('date', { ascending: true })
+    const { data } = await supabase.from('tournaments').select('*').order('start_date', { ascending: true })
     setTournaments(data ?? [])
     setLoading(false)
   }
@@ -40,10 +40,10 @@ export default function AdminPage() {
     const supabase = createClient()
     const fd = new FormData(e.currentTarget)
     await supabase.from('tournaments').insert({
-      name: fd.get('name') as string,
+      title: fd.get('name') as string,
       game: fd.get('game') as string,
       max_players: parseInt(fd.get('maxPlayers') as string),
-      date: (fd.get('date') as string) || null,
+      start_date: (fd.get('date') as string) || null,
       format: (fd.get('format') as string) || null,
       status: 'upcoming',
       current_players: 0,
@@ -187,8 +187,8 @@ export default function AdminPage() {
           {tournaments.map(t => (
             <div key={t.id} className="px-6 py-4 flex items-center gap-4 flex-wrap">
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-white">{t.name}</div>
-                <div className="text-gray-400 text-sm">{GAMES_MAP[t.game] ?? t.game} · {formatDate(t.date)} · {t.current_players}/{t.max_players}</div>
+                <div className="font-semibold text-white">{t.title}</div>
+                <div className="text-gray-400 text-sm">{GAMES_MAP[t.game] ?? t.game} · {formatDate(t.start_date)} · {t.current_players}/{t.max_players}</div>
               </div>
               <span className={`text-xs px-2 py-1 rounded-full shrink-0 ${STATUS_COLORS[t.status]}`}>{STATUS_LABELS[t.status]}</span>
               <select value={t.status} onChange={e => updateStatus(t.id, e.target.value as Tournament['status'])}

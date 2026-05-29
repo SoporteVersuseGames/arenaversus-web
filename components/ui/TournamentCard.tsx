@@ -17,9 +17,9 @@ export default function TournamentCard({ tournament, showBracketLink = false }: 
         <StatusPill status={tournament.status} />
       </div>
       <h3 className="font-bold text-white text-base mb-1 group-hover:text-[#ea3935] transition-colors">
-        {tournament.name}
+        {tournament.title}
       </h3>
-      <p className="text-gray-400 text-sm mb-4">{formatDate(tournament.date)}</p>
+      <p className="text-gray-400 text-sm mb-4">{formatDate(tournament.start_date)}</p>
       <div className="flex items-center justify-between text-sm mb-2">
         <span className="text-gray-400">{tournament.current_players}/{tournament.max_players} jugadores</span>
         <span className={spotsLeft <= 5 ? 'text-[#ea3935] font-semibold' : 'text-gray-400'}>

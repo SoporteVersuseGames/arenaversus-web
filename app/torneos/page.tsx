@@ -5,7 +5,7 @@ import type { Tournament } from '@/lib/types'
 async function getTournaments(): Promise<Tournament[]> {
   try {
     const supabase = await createClient()
-    const { data } = await supabase.from('tournaments').select('*').order('date', { ascending: true })
+    const { data } = await supabase.from('tournaments').select('*').order('start_date', { ascending: true })
     return data ?? []
   } catch {
     return []

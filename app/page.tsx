@@ -10,7 +10,7 @@ async function getFeaturedTournaments(): Promise<Tournament[]> {
       .from('tournaments')
       .select('*')
       .in('status', ['open', 'upcoming', 'in_progress'])
-      .order('date', { ascending: true })
+      .order('start_date', { ascending: true })
       .limit(4)
     return data ?? []
   } catch {

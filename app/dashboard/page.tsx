@@ -31,7 +31,7 @@ export default function DashboardPage() {
         supabase.from('profiles').select('*').eq('id', userId).single(),
         supabase.from('registrations').select('*, tournaments(*)').eq('player_id', userId),
         supabase.from('match_results')
-          .select('*, tournaments(name, game), opponent:profiles!match_results_opponent_id_fkey(username)')
+          .select('*, tournaments(title, game), opponent:profiles!match_results_opponent_id_fkey(username)')
           .eq('player_id', userId)
           .order('played_at', { ascending: false }),
       ])
@@ -171,8 +171,8 @@ export default function DashboardPage() {
                       <div key={r.id} className="flex items-center gap-3 text-sm">
                         <div className="w-8 h-8 rounded-lg bg-[#ea3935]/10 flex items-center justify-center">🏆</div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-white truncate">{t?.name}</div>
-                          <div className="text-gray-500 text-xs">{formatDate(t?.date)}</div>
+                          <div className="font-medium text-white truncate">{t?.title}</div>
+                          <div className="text-gray-500 text-xs">{formatDate(t?.start_date)}</div>
                         </div>
                         <span className={`text-xs px-2 py-1 rounded-full ${STATUS_COLORS[t?.status ?? ''] ?? 'bg-white/10 text-gray-400'}`}>
                           {STATUS_LABELS[t?.status ?? ''] ?? t?.status}
@@ -206,8 +206,8 @@ export default function DashboardPage() {
                     {(GAMES_MAP[t?.game ?? ''] ?? '🎮').split(' ')[0]}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-bold text-white">{t?.name}</div>
-                    <div className="text-gray-400 text-sm">{formatDate(t?.date)} · {t?.current_players}/{t?.max_players}</div>
+                    <div className="font-bold text-white">{t?.title}</div>
+                    <div className="text-gray-400 text-sm">{formatDate(t?.start_date)} · {t?.current_players}/{t?.max_players}</div>
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full shrink-0 ${STATUS_COLORS[t?.status ?? ''] ?? 'bg-white/10 text-gray-400'}`}>
                     {STATUS_LABELS[t?.status ?? ''] ?? t?.status}
@@ -289,7 +289,7 @@ export default function DashboardPage() {
                             </span>
                             <div className="flex-1 min-w-0 text-sm">
                               <span className="text-white">vs {m.opponent?.username ?? 'Oponente'}</span>
-                              <span className="text-gray-500 ml-2">{m.tournaments?.name}</span>
+                              <span className="text-gray-500 ml-2">{m.tournaments?.title}</span>
                             </div>
                             <span className="text-gray-500 text-xs">{formatDate(m.played_at)}</span>
                           </div>

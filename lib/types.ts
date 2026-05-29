@@ -10,12 +10,12 @@ export interface Profile {
 
 export interface Tournament {
   id: string
-  name: string
+  title: string
   game: string
   status: 'upcoming' | 'open' | 'in_progress' | 'finished'
   max_players: number
   current_players: number
-  date: string | null
+  start_date: string | null
   format: string | null
 }
 
@@ -42,6 +42,6 @@ export interface MatchResult {
   score: string | null
   round: number | null
   played_at: string
-  tournaments: { name: string; game: string } | null
+  tournaments: { title: string; game: string } | null
   opponent: { username: string | null } | null
 }

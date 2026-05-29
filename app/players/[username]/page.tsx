@@ -26,7 +26,7 @@ export default async function PlayerProfilePage({ params }: Props) {
   try {
     const { data } = await supabase
       .from('match_results')
-      .select('*, tournaments(name, game), opponent:profiles!match_results_opponent_id_fkey(username)')
+      .select('*, tournaments(title, game), opponent:profiles!match_results_opponent_id_fkey(username)')
       .eq('player_id', profile.id)
       .order('played_at', { ascending: false })
     matchResults = (data ?? []) as MatchResult[]
@@ -111,7 +111,7 @@ export default async function PlayerProfilePage({ params }: Props) {
                     vs {m.opponent?.username ?? 'Oponente'}
                   </div>
                   <div className="text-gray-500 text-xs">
-                    {m.tournaments?.name ?? 'Torneo'}{m.round ? ` · Ronda ${m.round}` : ''}{m.score ? ` · ${m.score}` : ''}
+                    {m.tournaments?.title ?? 'Torneo'}{m.round ? ` · Ronda ${m.round}` : ''}{m.score ? ` · ${m.score}` : ''}
                   </div>
                 </div>
                 <div className="text-gray-500 text-xs shrink-0">{formatDate(m.played_at)}</div>
