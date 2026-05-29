@@ -140,7 +140,7 @@ export default function AdminPage() {
             <label className="block text-gray-400 text-xs mb-1">Torneo</label>
             <select name="tournament_id" className="w-full bg-[#111111] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#ea3935]/50">
               <option value="">Sin torneo</option>
-              {tournaments.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              {tournaments.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
             </select>
           </div>
           <div>
