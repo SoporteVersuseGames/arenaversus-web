@@ -7,6 +7,7 @@ import type { User } from '@supabase/supabase-js'
 
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null)
+  const [username, setUsername] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -17,13 +18,21 @@ export default function Navbar() {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
-      if (session?.user) checkAdmin(session.user.id)
+      if (session?.user) {
+        checkAdmin(session.user.id)
+        loadUsername(session.user.id)
+      }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null)
-      if (session?.user) checkAdmin(session.user.id)
-      else setIsAdmin(false)
+      if (session?.user) {
+        checkAdmin(session.user.id)
+        loadUsername(session.user.id)
+      } else {
+        setIsAdmin(false)
+        setUsername(null)
+      }
     })
 
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -35,6 +44,12 @@ export default function Navbar() {
     const supabase = createClient()
     const { data } = await supabase.from('admins').select('id').eq('user_id', userId).single()
     setIsAdmin(!!data)
+  }
+
+  async function loadUsername(userId: string) {
+    const supabase = createClient()
+    const { data } = await supabase.from('profiles').select('username').eq('id', userId).single()
+    setUsername(data?.username ?? null)
   }
 
   async function handleLogout() {
@@ -66,6 +81,11 @@ export default function Navbar() {
           {user ? (
             <>
               {isAdmin && <Link href="/admin" className="text-gray-400 hover:text-white text-sm transition-colors">⚙ Admin</Link>}
+              {username && (
+                <Link href={`/players/${username}`} className="text-gray-400 hover:text-white text-sm transition-colors">
+                  👤 Mi Perfil
+                </Link>
+              )}
               <Link href="/dashboard" className="px-4 py-2 rounded-lg bg-[#1c1c1c] border border-white/10 text-white text-sm hover:border-[#ea3935]/50 transition-all">
                 Dashboard
               </Link>
@@ -93,6 +113,9 @@ export default function Navbar() {
           ))}
           {user ? (
             <>
+              {username && (
+                <Link href={`/players/${username}`} className="text-gray-300 py-2 text-sm" onClick={() => setMenuOpen(false)}>👤 Mi Perfil</Link>
+              )}
               <Link href="/dashboard" className="text-gray-300 py-2 text-sm" onClick={() => setMenuOpen(false)}>Dashboard</Link>
               <button onClick={handleLogout} className="text-left text-[#ea3935] py-2 text-sm">Cerrar sesión</button>
             </>
