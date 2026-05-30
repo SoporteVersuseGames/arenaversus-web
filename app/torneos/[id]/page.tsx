@@ -46,8 +46,9 @@ export default async function TournamentDetailPage({ params }: Props) {
     supabase.from('registrations').select('player_id').eq('tournament_id', id),
     supabase
       .from('match_results')
-      .select('*, opponent:profiles!match_results_opponent_id_fkey(username)')
+      .select('*, player:profiles!match_results_player_id_fkey(username), opponent:profiles!match_results_opponent_id_fkey(username)')
       .eq('tournament_id', id)
+      .eq('result', 'win')
       .order('round', { ascending: true })
       .order('played_at', { ascending: true }),
     userId
@@ -61,17 +62,16 @@ export default async function TournamentDetailPage({ params }: Props) {
     : { data: [] as Participant[] }
 
   const participants: Participant[] = (profilesData ?? []) as Participant[]
-  const allResults = (resultsData ?? []) as (MatchResult & { opponent: { username: string | null } | null })[]
+  const allResults = (resultsData ?? []) as unknown as (MatchResult & {
+    player: { username: string | null } | null
+    opponent: { username: string | null } | null
+  })[]
   const isRegistered = !!myRegData
 
   const spotsLeft = t.max_players - t.current_players
   const pct = Math.min((t.current_players / t.max_players) * 100, 100)
 
-  const profilesMap: Record<string, string | null> = Object.fromEntries(
-    participants.map(p => [p.id, p.username])
-  )
-
-  const bracketMatches = allResults.filter(m => m.result === 'win')
+  const bracketMatches = allResults
   const maxRound = bracketMatches.length > 0
     ? Math.max(...bracketMatches.map(m => m.round ?? 1))
     : 0
@@ -189,7 +189,7 @@ export default async function TournamentDetailPage({ params }: Props) {
                   </div>
                   <div className="flex flex-col gap-2">
                     {matches.map(m => {
-                      const winnerUsername = profilesMap[m.player_id] ?? null
+                      const winnerUsername = m.player?.username ?? null
                       const loserUsername = m.opponent?.username ?? null
                       return (
                         <div key={m.id} className="bg-[#111111] border border-white/5 rounded-lg overflow-hidden">
