@@ -86,10 +86,10 @@ export default function DashboardPage() {
 
     const updates = {
       username: newUsername,
-      full_name: `${fd.get('firstName')} ${fd.get('lastName')}`.trim(),
-      bio: fd.get('bio') as string,
-      discord_tag: fd.get('discord') as string,
-      country: fd.get('country') as string,
+      full_name: `${fd.get('firstName')} ${fd.get('lastName')}`.trim() || null,
+      bio: (fd.get('bio') as string) || null,
+      discord_tag: (fd.get('discord') as string) || null,
+      country: (fd.get('country') as string) || null,
       avatar_url: avatarUrl,
       updated_at: new Date().toISOString(),
     }
@@ -381,7 +381,6 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-gray-300 text-sm mb-1.5">Username</label>
                 <input name="username" defaultValue={profile.username ?? ''} required className="w-full bg-[#111111] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#ea3935]/50 transition-colors" />
-                {profileError && <p className="text-red-400 text-sm mt-1">{profileError}</p>}
               </div>
               <div>
                 <label className="block text-gray-300 text-sm mb-1.5">País</label>
@@ -400,6 +399,7 @@ export default function DashboardPage() {
                 <label className="block text-gray-300 text-sm mb-1.5">Bio</label>
                 <textarea name="bio" defaultValue={profile.bio ?? ''} rows={3} className="w-full bg-[#111111] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#ea3935]/50 transition-colors resize-none" />
               </div>
+              {profileError && <p className="text-red-400 text-sm mt-1">{profileError}</p>}
               <div className="flex items-center gap-4">
                 <button type="submit" disabled={saving} className="px-6 py-2.5 rounded-lg bg-av-gradient text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity">
                   {saving ? 'Guardando...' : '💾 Guardar cambios'}
