@@ -12,7 +12,8 @@ export default async function PlayerProfilePage({ params }: Props) {
   const { username } = await params
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: authData } = await supabase.auth.getUser()
+  const user = authData?.user ?? null
 
   let profileData: Profile | null = null
   try {
@@ -58,7 +59,7 @@ export default async function PlayerProfilePage({ params }: Props) {
       {/* Hero del perfil */}
       <div className="bg-[#1c1c1c] border border-white/7 rounded-2xl p-8 mb-6 flex flex-col sm:flex-row items-center sm:items-start gap-6">
         {profile.avatar_url ? (
-          <img src={profile.avatar_url} alt={profile.username ?? ''} className="w-20 h-20 rounded-full object-cover shrink-0" />
+          <img src={profile.avatar_url} alt="" className="w-20 h-20 rounded-full object-cover shrink-0" />
         ) : (
           <div className="w-20 h-20 rounded-full bg-av-gradient flex items-center justify-center font-black text-white text-3xl shrink-0">
             {initial}
