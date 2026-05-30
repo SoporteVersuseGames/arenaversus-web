@@ -16,6 +16,14 @@ interface Participant {
   country: string | null
 }
 
+function getRoundLabel(round: number, maxRound: number): string {
+  const stepsFromFinal = maxRound - round
+  if (stepsFromFinal === 0) return 'Final'
+  if (stepsFromFinal === 1) return 'Semifinal'
+  if (stepsFromFinal === 2) return 'Cuartos de Final'
+  return `Ronda ${round}`
+}
+
 export default async function TournamentDetailPage({ params }: Props) {
   const { id } = await params
   const supabase = await createClient()
@@ -53,18 +61,27 @@ export default async function TournamentDetailPage({ params }: Props) {
     : { data: [] as Participant[] }
 
   const participants: Participant[] = (profilesData ?? []) as Participant[]
-  const matchResults = (resultsData ?? []) as (MatchResult & { opponent: { username: string | null } | null })[]
+  const allResults = (resultsData ?? []) as (MatchResult & { opponent: { username: string | null } | null })[]
   const isRegistered = !!myRegData
 
   const spotsLeft = t.max_players - t.current_players
   const pct = Math.min((t.current_players / t.max_players) * 100, 100)
 
-  const roundsMap = matchResults.reduce((acc, m) => {
+  const profilesMap: Record<string, string | null> = Object.fromEntries(
+    participants.map(p => [p.id, p.username])
+  )
+
+  const bracketMatches = allResults.filter(m => m.result === 'win')
+  const maxRound = bracketMatches.length > 0
+    ? Math.max(...bracketMatches.map(m => m.round ?? 1))
+    : 0
+
+  const roundsMap = bracketMatches.reduce((acc, m) => {
     const r = m.round ?? 1
     if (!acc[r]) acc[r] = []
     acc[r].push(m)
     return acc
-  }, {} as Record<number, typeof matchResults>)
+  }, {} as Record<number, typeof bracketMatches>)
 
   return (
     <div className="max-w-4xl mx-auto px-4 pt-24 pb-16">
@@ -148,42 +165,66 @@ export default async function TournamentDetailPage({ params }: Props) {
         )}
       </div>
 
-      {/* Match results by round */}
-      {matchResults.length > 0 && (
-        <div className="bg-[#1c1c1c] border border-white/7 rounded-xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-white/7">
-            <h2 className="font-bold text-white">Resultados</h2>
-          </div>
-          {Object.entries(roundsMap)
-            .sort(([a], [b]) => Number(a) - Number(b))
-            .map(([round, matches]) => (
-              <div key={round}>
-                <div className="px-6 py-2 bg-white/[0.03] border-b border-white/5">
-                  <span className="text-gray-400 text-xs font-semibold uppercase tracking-wider">
-                    Ronda {round}
-                  </span>
-                </div>
-                <div className="divide-y divide-white/5">
-                  {matches.map(m => (
-                    <div key={m.id} className="px-6 py-3 flex items-center gap-4">
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                        m.result === 'win' ? 'bg-green-500/20 text-green-400' :
-                        m.result === 'loss' ? 'bg-red-500/20 text-red-400' :
-                        'bg-white/10 text-gray-400'
-                      }`}>
-                        {m.result === 'win' ? 'Victoria' : m.result === 'loss' ? 'Derrota' : 'Empate'}
-                      </span>
-                      <span className="text-white text-sm flex-1">
-                        vs {m.opponent?.username ?? 'Oponente'}
-                      </span>
-                      {m.score && <span className="text-gray-400 text-sm font-mono">{m.score}</span>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+      {/* Bracket */}
+      <div className="bg-[#1c1c1c] border border-white/7 rounded-xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/7">
+          <h2 className="font-bold text-white">Bracket</h2>
         </div>
-      )}
+        {bracketMatches.length === 0 ? (
+          <div className="text-center py-10 text-gray-500">
+            <p>
+              {['upcoming', 'open'].includes(t.status)
+                ? 'El bracket se publicará cuando inicie el torneo.'
+                : 'No hay resultados registrados aún.'}
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col md:flex-row gap-4 overflow-x-auto p-4 md:p-6">
+            {Object.entries(roundsMap)
+              .sort(([a], [b]) => Number(a) - Number(b))
+              .map(([round, matches]) => (
+                <div key={round} className="flex-1 min-w-[180px]">
+                  <div className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3 px-1">
+                    {getRoundLabel(Number(round), maxRound)}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {matches.map(m => {
+                      const winnerUsername = profilesMap[m.player_id] ?? null
+                      const loserUsername = m.opponent?.username ?? null
+                      return (
+                        <div key={m.id} className="bg-[#111111] border border-white/5 rounded-lg overflow-hidden">
+                          <div className="flex items-center justify-between px-3 py-2 border-b border-white/5">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-green-400 font-bold text-xs shrink-0">W</span>
+                              {winnerUsername ? (
+                                <Link href={`/players/${winnerUsername}`} className="text-white text-sm font-medium truncate hover:text-[#ea3935] transition-colors">
+                                  {winnerUsername}
+                                </Link>
+                              ) : (
+                                <span className="text-white text-sm font-medium truncate">Jugador</span>
+                              )}
+                            </div>
+                            {m.score && <span className="text-gray-400 text-xs font-mono shrink-0 ml-2">{m.score}</span>}
+                          </div>
+                          <div className="flex items-center px-3 py-2">
+                            <span className="text-red-400 font-bold text-xs shrink-0 mr-2">L</span>
+                            {loserUsername ? (
+                              <Link href={`/players/${loserUsername}`} className="text-gray-500 text-sm truncate hover:text-[#ea3935] transition-colors">
+                                {loserUsername}
+                              </Link>
+                            ) : (
+                              <span className="text-gray-500 text-sm truncate">Oponente</span>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
