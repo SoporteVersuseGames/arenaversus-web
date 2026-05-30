@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { GAMES_MAP, STATUS_LABELS, STATUS_COLORS, COUNTRIES_MAP, formatDate } from '@/utils/constants'
 import type { Profile, Registration, Tournament, MatchResult } from '@/lib/types'
+import GameIcon from '@/components/ui/GameIcon'
 
 type Panel = 'overview' | 'torneos' | 'perfil' | 'stats'
 
@@ -136,7 +137,7 @@ export default function DashboardPage() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="w-10 h-10 border-2 border-[#ea3935] border-t-transparent rounded-full animate-spin" />
+      <div className="w-10 h-10 border-2 border-[#FF3D00] border-t-transparent rounded-full animate-spin" />
     </div>
   )
 
@@ -173,16 +174,16 @@ export default function DashboardPage() {
           <nav className="space-y-1">
             {navItems.map(({ key, icon, label, badge }) => (
               <button key={key} onClick={() => { setPanel(key); setSidebarOpen(false) }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${panel === key ? 'bg-[#ea3935]/10 text-[#ea3935] font-medium' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${panel === key ? 'bg-[#FF3D00]/10 text-[#FF3D00] font-medium' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
                 <span>{icon}</span>
                 <span className="flex-1 text-left">{label}</span>
-                {badge !== undefined && badge > 0 && <span className="bg-[#ea3935] text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{badge}</span>}
+                {badge !== undefined && badge > 0 && <span className="bg-[#FF3D00] text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{badge}</span>}
               </button>
             ))}
           </nav>
         </div>
         <div className="absolute bottom-0 left-0 right-0 p-4">
-          <button onClick={handleLogout} className="w-full py-2.5 rounded-lg border border-[#ea3935]/30 text-[#ea3935] text-sm font-medium hover:bg-[#ea3935]/10 transition-all">
+          <button onClick={handleLogout} className="w-full py-2.5 rounded-lg border border-[#FF3D00]/30 text-[#FF3D00] text-sm font-medium hover:bg-[#FF3D00]/10 transition-all">
             Cerrar sesión
           </button>
         </div>
@@ -205,14 +206,14 @@ export default function DashboardPage() {
                 { icon: '✅', value: registrations.filter(r => r.tournaments?.status === 'finished').length, label: 'Torneos Jugados' },
                 { icon: '⏳', value: registrations.filter(r => ['open', 'upcoming', 'in_progress'].includes(r.tournaments?.status ?? '')).length, label: 'Por Jugar' },
               ].map(({ icon, value, label }) => (
-                <div key={label} className="bg-[#1c1c1c] border border-white/7 rounded-xl p-4 text-center">
+                <div key={label} className="bg-[#141414] border border-white/7 rounded-xl p-4 text-center">
                   <div className="text-2xl mb-2">{icon}</div>
                   <div className="text-2xl font-black text-gradient">{value}</div>
                   <div className="text-gray-400 text-xs mt-1">{label}</div>
                 </div>
               ))}
             </div>
-            <div className="bg-[#1c1c1c] border border-white/7 rounded-xl p-6 flex items-center gap-5">
+            <div className="bg-[#141414] border border-white/7 rounded-xl p-6 flex items-center gap-5">
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="" className="w-16 h-16 rounded-full object-cover shrink-0" />
               ) : (
@@ -228,14 +229,14 @@ export default function DashboardPage() {
               </div>
             </div>
             {registrations.length > 0 && (
-              <div className="bg-[#1c1c1c] border border-white/7 rounded-xl p-5">
+              <div className="bg-[#141414] border border-white/7 rounded-xl p-5">
                 <h3 className="font-bold text-white mb-4">Actividad Reciente</h3>
                 <div className="space-y-3">
                   {registrations.slice(0, 3).map(r => {
                     const t = r.tournaments
                     return (
                       <div key={r.id} className="flex items-center gap-3 text-sm">
-                        <div className="w-8 h-8 rounded-lg bg-[#ea3935]/10 flex items-center justify-center">🏆</div>
+                        <div className="w-8 h-8 rounded-lg bg-[#FF3D00]/10 flex items-center justify-center">🏆</div>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-white truncate">{t?.title}</div>
                           <div className="text-gray-500 text-xs">{formatDate(t?.start_date)}</div>
@@ -256,10 +257,10 @@ export default function DashboardPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-black text-white hidden md:block">Mis Torneos</h1>
-              <Link href="/torneos" className="text-sm text-[#ea3935] hover:underline">+ Inscribirme en más</Link>
+              <Link href="/torneos" className="text-sm text-[#FF3D00] hover:underline">+ Inscribirme en más</Link>
             </div>
             {registrations.length === 0 ? (
-              <div className="text-center py-20 text-gray-500 bg-[#1c1c1c] border border-white/7 rounded-xl">
+              <div className="text-center py-20 text-gray-500 bg-[#141414] border border-white/7 rounded-xl">
                 <div className="text-4xl mb-3">🏆</div>
                 <p className="font-medium">No estás inscrito en ningún torneo</p>
                 <Link href="/torneos" className="inline-block mt-4 px-6 py-2.5 rounded-lg bg-av-gradient text-white text-sm font-semibold">Ver Torneos</Link>
@@ -267,9 +268,9 @@ export default function DashboardPage() {
             ) : registrations.map(r => {
               const t = r.tournaments
               return (
-                <div key={r.id} className="bg-[#1c1c1c] border border-white/7 rounded-xl p-5 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-av-gradient flex items-center justify-center text-xl">
-                    {(GAMES_MAP[t?.game ?? ''] ?? '🎮').split(' ')[0]}
+                <div key={r.id} className="bg-[#141414] border border-white/7 rounded-xl p-5 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
+                    <GameIcon game={t?.game ?? ''} size="md" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-bold text-white">{t?.title}</div>
@@ -280,7 +281,7 @@ export default function DashboardPage() {
                   </span>
                   {t && ['open', 'upcoming'].includes(t.status) && (
                     <button onClick={() => handleUnregister(r.id, t.id, t.current_players)}
-                      className="text-gray-500 hover:text-[#ea3935] text-xs transition-colors shrink-0">Salir</button>
+                      className="text-gray-500 hover:text-[#FF3D00] text-xs transition-colors shrink-0">Salir</button>
                   )}
                 </div>
               )
@@ -293,7 +294,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-black text-white hidden md:block">Mis Stats</h1>
               {profile?.username && (
-                <Link href={`/players/${profile.username}`} className="text-sm text-[#ea3935] hover:underline">
+                <Link href={`/players/${profile.username}`} className="text-sm text-[#FF3D00] hover:underline">
                   Ver perfil público →
                 </Link>
               )}
@@ -320,7 +321,7 @@ export default function DashboardPage() {
                       { icon: '🤝', value: draws, label: 'Empates' },
                       { icon: '🎮', value: total, label: 'Partidas' },
                     ].map(({ icon, value, label }) => (
-                      <div key={label} className="bg-[#1c1c1c] border border-white/7 rounded-xl p-4 text-center">
+                      <div key={label} className="bg-[#141414] border border-white/7 rounded-xl p-4 text-center">
                         <div className="text-2xl mb-2">{icon}</div>
                         <div className="text-2xl font-black text-gradient">{value}</div>
                         <div className="text-gray-400 text-xs mt-1">{label}</div>
@@ -328,15 +329,15 @@ export default function DashboardPage() {
                     ))}
                   </div>
                   {mainGame && (
-                    <div className="bg-[#1c1c1c] border border-white/7 rounded-xl p-4 flex items-center gap-4">
-                      <div className="text-3xl">{GAMES_MAP[mainGame]?.split(' ')[0]}</div>
+                    <div className="bg-[#141414] border border-white/7 rounded-xl p-4 flex items-center gap-4">
+                      <GameIcon game={mainGame} size="md" />
                       <div>
                         <div className="text-xs text-gray-500">Juego principal</div>
                         <div className="font-bold text-white">{GAMES_MAP[mainGame]?.split(' ').slice(1).join(' ') ?? mainGame}</div>
                       </div>
                     </div>
                   )}
-                  <div className="bg-[#1c1c1c] border border-white/7 rounded-xl overflow-hidden">
+                  <div className="bg-[#141414] border border-white/7 rounded-xl overflow-hidden">
                     <div className="px-6 py-4 border-b border-white/7">
                       <h3 className="font-bold text-white">Historial Reciente</h3>
                     </div>
@@ -347,8 +348,8 @@ export default function DashboardPage() {
                         {matchResults.slice(0, 10).map(m => (
                           <div key={m.id} className="px-6 py-3 flex items-center gap-4">
                             <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                              m.result === 'win' ? 'bg-green-500/20 text-green-400' :
-                              m.result === 'loss' ? 'bg-red-500/20 text-red-400' :
+                              m.result === 'win'  ? 'bg-[#39FF14]/15 text-[#39FF14]' :
+                              m.result === 'loss' ? 'bg-red-500/20 text-[#FF4444]' :
                               'bg-white/10 text-gray-400'
                             }`}>
                               {m.result === 'win' ? 'Victoria' : m.result === 'loss' ? 'Derrota' : 'Empate'}
@@ -372,7 +373,7 @@ export default function DashboardPage() {
         {panel === 'perfil' && profile && (
           <div className="max-w-lg">
             <h1 className="text-2xl font-black text-white mb-6 hidden md:block">Editar Perfil</h1>
-            <form onSubmit={handleSaveProfile} className="bg-[#1c1c1c] border border-white/7 rounded-xl p-6 space-y-4">
+            <form onSubmit={handleSaveProfile} className="bg-[#141414] border border-white/7 rounded-xl p-6 space-y-4">
               <div className="flex items-center gap-4">
                 {profile.avatar_url ? (
                   <img src={profile.avatar_url} alt="" className="w-16 h-16 rounded-full object-cover shrink-0" />
@@ -381,26 +382,26 @@ export default function DashboardPage() {
                 )}
                 <div className="flex-1">
                   <label className="block text-gray-300 text-sm mb-1.5">Foto de perfil</label>
-                  <input name="avatar" type="file" accept="image/*" className="w-full text-gray-400 text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-[#ea3935]/10 file:text-[#ea3935] file:text-xs file:font-medium hover:file:bg-[#ea3935]/20 cursor-pointer" />
+                  <input name="avatar" type="file" accept="image/*" className="w-full text-gray-400 text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-[#FF3D00]/10 file:text-[#FF3D00] file:text-xs file:font-medium hover:file:bg-[#FF3D00]/20 cursor-pointer" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-gray-300 text-sm mb-1.5">Nombre</label>
-                  <input name="firstName" defaultValue={firstName} className="w-full bg-[#111111] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#ea3935]/50 transition-colors" />
+                  <input name="firstName" defaultValue={firstName} className="w-full bg-[#111111] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF3D00]/50 transition-colors" />
                 </div>
                 <div>
                   <label className="block text-gray-300 text-sm mb-1.5">Apellido</label>
-                  <input name="lastName" defaultValue={lastParts.join(' ')} className="w-full bg-[#111111] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#ea3935]/50 transition-colors" />
+                  <input name="lastName" defaultValue={lastParts.join(' ')} className="w-full bg-[#111111] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF3D00]/50 transition-colors" />
                 </div>
               </div>
               <div>
                 <label className="block text-gray-300 text-sm mb-1.5">Username</label>
-                <input name="username" defaultValue={profile.username ?? ''} required className="w-full bg-[#111111] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#ea3935]/50 transition-colors" />
+                <input name="username" defaultValue={profile.username ?? ''} required className="w-full bg-[#111111] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF3D00]/50 transition-colors" />
               </div>
               <div>
                 <label className="block text-gray-300 text-sm mb-1.5">País</label>
-                <select name="country" defaultValue={profile.country ?? ''} className="w-full bg-[#111111] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#ea3935]/50 transition-colors">
+                <select name="country" defaultValue={profile.country ?? ''} className="w-full bg-[#111111] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF3D00]/50 transition-colors">
                   <option value="">Seleccionar país</option>
                   {Object.entries(COUNTRIES_MAP).map(([code, label]) => (
                     <option key={code} value={code}>{label}</option>
@@ -409,11 +410,11 @@ export default function DashboardPage() {
               </div>
               <div>
                 <label className="block text-gray-300 text-sm mb-1.5">Discord</label>
-                <input name="discord" defaultValue={profile.discord_tag ?? ''} placeholder="usuario#0000" className="w-full bg-[#111111] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#ea3935]/50 transition-colors" />
+                <input name="discord" defaultValue={profile.discord_tag ?? ''} placeholder="usuario#0000" className="w-full bg-[#111111] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF3D00]/50 transition-colors" />
               </div>
               <div>
                 <label className="block text-gray-300 text-sm mb-1.5">Bio</label>
-                <textarea name="bio" defaultValue={profile.bio ?? ''} rows={3} className="w-full bg-[#111111] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#ea3935]/50 transition-colors resize-none" />
+                <textarea name="bio" defaultValue={profile.bio ?? ''} rows={3} className="w-full bg-[#111111] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF3D00]/50 transition-colors resize-none" />
               </div>
               {profileError && <p className="text-red-400 text-sm mt-1">{profileError}</p>}
               <div className="flex items-center gap-4">
