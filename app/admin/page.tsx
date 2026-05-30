@@ -111,6 +111,19 @@ export default function AdminPage() {
     setTimeout(() => setResultOk(false), 3000)
   }
 
+  async function handleToggleAdmin(targetId: string, currentIsAdmin: boolean) {
+    setTogglingId(targetId)
+    const supabase = createClient()
+    await supabase
+      .from('profiles')
+      .update({ is_admin: !currentIsAdmin })
+      .eq('id', targetId)
+    setUsers(prev =>
+      prev.map(u => u.id === targetId ? { ...u, is_admin: !currentIsAdmin } : u)
+    )
+    setTogglingId(null)
+  }
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-10 h-10 border-2 border-[#ea3935] border-t-transparent rounded-full animate-spin" />
@@ -124,7 +137,7 @@ export default function AdminPage() {
         <p className="text-gray-400">Gestión de torneos Arena Versus</p>
       </div>
 
-      <div className="bg-[#1c1c1c] border border-white/7 rounded-xl p-6 mb-8">
+      <div className="bg-[#141414] border border-white/[0.07] rounded-xl p-6 mb-8">
         <h2 className="font-bold text-white mb-4">Crear Torneo</h2>
         <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
@@ -158,7 +171,7 @@ export default function AdminPage() {
         {createError && <p className="mt-3 text-red-400 text-sm font-mono">{createError}</p>}
       </div>
 
-      <div className="bg-[#1c1c1c] border border-white/7 rounded-xl p-6 mb-8">
+      <div className="bg-[#141414] border border-white/[0.07] rounded-xl p-6 mb-8">
         <h2 className="font-bold text-white mb-4">Registrar Resultado de Partida</h2>
         <form onSubmit={handleRegisterResult} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
@@ -207,8 +220,8 @@ export default function AdminPage() {
         </form>
       </div>
 
-      <div className="bg-[#1c1c1c] border border-white/7 rounded-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/7">
+      <div className="bg-[#141414] border border-white/[0.07] rounded-xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/[0.07]">
           <h2 className="font-bold text-white">Todos los Torneos ({tournaments.length})</h2>
         </div>
         <div className="divide-y divide-white/5">
@@ -230,6 +243,67 @@ export default function AdminPage() {
             </div>
           ))}
           {tournaments.length === 0 && <div className="text-center py-12 text-gray-500">No hay torneos creados aún</div>}
+        </div>
+      </div>
+
+      {/* Gestión de Usuarios */}
+      <div className="bg-[#141414] border border-white/[0.07] rounded-xl overflow-hidden mt-8">
+        <div className="px-6 py-4 border-b border-white/[0.07]">
+          <h2 className="font-bold text-white">Gestión de Usuarios ({users.length})</h2>
+        </div>
+        <div className="divide-y divide-white/5">
+          {users.map(u => {
+            const isSelf = u.id === currentUserId
+            const locked = u.is_super_admin || isSelf
+            return (
+              <div key={u.id} className="px-6 py-3 flex items-center gap-4 flex-wrap">
+                <div className="w-8 h-8 rounded-full bg-av-gradient flex items-center justify-center font-bold text-white text-xs shrink-0">
+                  {(u.username || '?')[0].toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-white text-sm font-medium">{u.username ?? 'Sin username'}</span>
+                  {isSelf && <span className="ml-2 text-gray-500 text-xs">(tú)</span>}
+                </div>
+                {u.is_super_admin ? (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-semibold">
+                    👑 Super Admin
+                  </span>
+                ) : u.is_admin ? (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-[#FF3D00]/20 text-[#FF3D00] font-semibold">
+                    🛡 Admin
+                  </span>
+                ) : (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-gray-500">
+                    — Jugador
+                  </span>
+                )}
+                <button
+                  disabled={locked || togglingId === u.id}
+                  onClick={() => !locked && handleToggleAdmin(u.id, u.is_admin)}
+                  className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                    locked
+                      ? 'border border-white/10 text-gray-600'
+                      : u.is_admin
+                      ? 'border border-red-500/30 text-red-400 hover:bg-red-500/10'
+                      : 'bg-av-gradient text-white hover:opacity-90'
+                  }`}
+                >
+                  {togglingId === u.id
+                    ? '...'
+                    : u.is_super_admin
+                    ? 'Protegido'
+                    : isSelf
+                    ? u.is_admin ? '🛡 Admin' : '— Jugador'
+                    : u.is_admin
+                    ? 'Quitar admin'
+                    : 'Dar admin'}
+                </button>
+              </div>
+            )
+          })}
+          {users.length === 0 && (
+            <div className="text-center py-12 text-gray-500">No hay usuarios registrados</div>
+          )}
         </div>
       </div>
     </div>
