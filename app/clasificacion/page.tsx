@@ -121,7 +121,7 @@ export default async function ClasificacionPage() {
                 color: i === 0 ? '#FF3D00'
                      : i === 1 ? '#d1d5db'
                      : i === 2 ? '#FF6D00'
-                     : '#444',
+                     : '#666',
               }}
             >
               {i + 1}
