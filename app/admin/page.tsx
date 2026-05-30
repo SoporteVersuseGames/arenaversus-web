@@ -5,6 +5,14 @@ import { createClient } from '@/lib/supabase/client'
 import { GAMES_MAP, STATUS_LABELS, STATUS_COLORS, formatDate } from '@/utils/constants'
 import type { Tournament, Profile } from '@/lib/types'
 
+interface AdminUser {
+  id: string
+  username: string | null
+  avatar_url: string | null
+  is_admin: boolean
+  is_super_admin: boolean
+}
+
 export default function AdminPage() {
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [loading, setLoading] = useState(true)
@@ -13,18 +21,35 @@ export default function AdminPage() {
   const [registeringResult, setRegisteringResult] = useState(false)
   const [resultOk, setResultOk] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
+  const [users, setUsers] = useState<AdminUser[]>([])
+  const [togglingId, setTogglingId] = useState<string | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
     async function init() {
       const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { router.push('/login'); return }
-      const { data: adminData } = await supabase.from('admins').select('id').eq('email', session.user.email ?? '').single()
-      if (!adminData) { router.push('/'); return }
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
+      setCurrentUserId(user.id)
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single()
+      if (!profileData?.is_admin) { router.push('/'); return }
       loadTournaments()
-      const { data: playersData } = await supabase.from('profiles').select('*').order('username')
+      const [{ data: playersData }, { data: usersData }] = await Promise.all([
+        supabase.from('profiles').select('*').order('username'),
+        supabase
+          .from('profiles')
+          .select('id, username, avatar_url, is_admin, is_super_admin')
+          .order('is_super_admin', { ascending: false })
+          .order('is_admin', { ascending: false })
+          .order('username'),
+      ])
       setPlayers(playersData ?? [])
+      setUsers((usersData ?? []) as AdminUser[])
     }
     init()
   }, [router])
