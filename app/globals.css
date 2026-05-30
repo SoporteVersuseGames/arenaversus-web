@@ -1,20 +1,22 @@
 @import "tailwindcss";
 
 @theme {
-  --color-av-red: #ea3935;
-  --color-av-orange: #ec622b;
-  --color-av-black: #111111;
-  --color-av-black2: #1c1c1c;
+  --color-av-red: #FF3D00;
+  --color-av-orange: #FF6D00;
+  --color-av-black: #0a0a0a;
+  --color-av-black2: #141414;
+  --color-av-black3: #1a1a1a;
   --font-sans: 'Inter Tight', sans-serif;
 }
 
 :root {
-  --red: #ea3935;
-  --orange: #ec622b;
-  --gradient: linear-gradient(135deg, #ea3935 0%, #ec622b 100%);
-  --black: #111111;
-  --black2: #1c1c1c;
-  --border: 1px solid rgba(255,255,255,0.07);
+  --red:        #FF3D00;
+  --orange:     #FF6D00;
+  --gradient:   linear-gradient(135deg, #FF3D00 0%, #FF6D00 100%);
+  --black:      #0a0a0a;
+  --black2:     #141414;
+  --black3:     #1a1a1a;
+  --border:     1px solid rgba(255,255,255,0.06);
   --transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
 }
 
@@ -27,4 +29,23 @@
 
 @utility bg-av-gradient {
   background: var(--gradient);
+}
+
+/* Per-game hover border using CSS custom property --game-color set inline */
+.game-card-hover:hover {
+  border-color: var(--game-color, #FF3D00);
+}
+
+/* Ticker animation for MediaTicker */
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-track {
+  animation: ticker 30s linear infinite;
+}
+
+.ticker-track:hover {
+  animation-play-state: paused;
 }
