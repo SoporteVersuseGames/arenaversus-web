@@ -23,12 +23,13 @@ export default async function TournamentDetailPage({ params }: Props) {
   const { data: { user } } = await supabase.auth.getUser()
   const userId = user?.id ?? null
 
-  const { data: tournamentData } = await supabase
+  const { data: tournamentData, error: tournamentError } = await supabase
     .from('tournaments')
     .select('*')
     .eq('id', id)
     .single()
 
+  if (tournamentError?.code !== 'PGRST116' && tournamentError) throw tournamentError
   if (!tournamentData) notFound()
 
   const t = tournamentData as Tournament & { description: string | null; prize_description: string | null }
@@ -118,20 +119,31 @@ export default async function TournamentDetailPage({ params }: Props) {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 p-4">
-            {participants.map(p => (
-              <Link key={p.id} href={`/players/${p.username ?? p.id}`}
-                className="flex items-center gap-2 bg-[#111111] rounded-lg px-3 py-2 border border-white/5 hover:border-[#ea3935]/30 transition-all">
-                <div className="w-7 h-7 rounded-full bg-av-gradient flex items-center justify-center font-bold text-white text-xs shrink-0">
-                  {(p.username || '?')[0].toUpperCase()}
+            {participants.map(p => {
+              const inner = (
+                <>
+                  <div className="w-7 h-7 rounded-full bg-av-gradient flex items-center justify-center font-bold text-white text-xs shrink-0">
+                    {(p.username || '?')[0].toUpperCase()}
+                  </div>
+                  <span className="text-sm text-white truncate">{p.username ?? 'Jugador'}</span>
+                  {p.country && (
+                    <span className="text-xs text-gray-500 ml-auto shrink-0">
+                      {COUNTRIES_MAP[p.country]?.split(' ')[0] ?? ''}
+                    </span>
+                  )}
+                </>
+              )
+              return p.username ? (
+                <Link key={p.id} href={`/players/${p.username}`}
+                  className="flex items-center gap-2 bg-[#111111] rounded-lg px-3 py-2 border border-white/5 hover:border-[#ea3935]/30 transition-all">
+                  {inner}
+                </Link>
+              ) : (
+                <div key={p.id} className="flex items-center gap-2 bg-[#111111] rounded-lg px-3 py-2 border border-white/5">
+                  {inner}
                 </div>
-                <span className="text-sm text-white truncate">{p.username ?? 'Jugador'}</span>
-                {p.country && (
-                  <span className="text-xs text-gray-500 ml-auto shrink-0">
-                    {COUNTRIES_MAP[p.country]?.split(' ')[0] ?? ''}
-                  </span>
-                )}
-              </Link>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
