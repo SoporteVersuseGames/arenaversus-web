@@ -47,7 +47,7 @@ export default function HeroTabs({ games }: HeroTabsProps) {
       {/* Tab strip — pinned to bottom of hero section */}
       <div className="absolute bottom-0 left-0 right-0 z-20 border-t border-white/10 bg-black/70 backdrop-blur-sm">
         <div className="overflow-x-auto relative">
-          <div className="flex min-w-max">
+          <div className="flex min-w-max md:min-w-0 md:w-full">
             {games.map((game, idx) => {
               const gKey    = toGameKey(game.key)
               const gColor  = GAME_COLORS[gKey] ?? '#FF3D00'
@@ -56,7 +56,7 @@ export default function HeroTabs({ games }: HeroTabsProps) {
                 <button
                   key={game.key}
                   onClick={() => setActiveIdx(idx)}
-                  className="flex items-center gap-2 px-4 py-3 relative shrink-0 transition-opacity"
+                  className="flex items-center justify-center gap-2 px-4 py-3 relative shrink-0 md:flex-1 transition-opacity"
                   style={{ opacity: isActive ? 1 : 0.45 }}
                 >
                   <GameIcon game={game.key} size="sm" />
