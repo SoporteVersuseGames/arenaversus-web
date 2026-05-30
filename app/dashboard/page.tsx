@@ -70,8 +70,24 @@ export default function DashboardPage() {
     let avatarUrl: string | null = profile.avatar_url ?? null
     const avatarFile = fd.get('avatar') as File
     if (avatarFile && avatarFile.size > 0) {
+      if (!avatarFile.type.startsWith('image/')) {
+        setProfileError('Solo se permiten imágenes')
+        setSaving(false)
+        return
+      }
+      if (avatarFile.size > 5 * 1024 * 1024) {
+        setProfileError('La imagen no puede superar 5 MB')
+        setSaving(false)
+        return
+      }
       const ext = avatarFile.name.split('.').pop() ?? 'jpg'
       const path = `${profile.id}/avatar.${ext}`
+      if (profile.avatar_url) {
+        const oldPath = profile.avatar_url.split('/avatars/').pop()
+        if (oldPath && oldPath !== path) {
+          await supabase.storage.from('avatars').remove([decodeURIComponent(oldPath)])
+        }
+      }
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(path, avatarFile, { upsert: true })
