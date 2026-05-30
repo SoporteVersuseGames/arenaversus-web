@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import TournamentCard from '@/components/ui/TournamentCard'
-import CyberpunkBg from '@/components/ui/CyberpunkBg'
+import GamingBg from '@/components/ui/GamingBg'
 import type { Tournament } from '@/lib/types'
 
 async function getData(): Promise<{ tournaments: Tournament[]; userId: string | null; registeredIds: Set<string> }> {
@@ -36,7 +36,7 @@ export default async function TorneosPage() {
     <>
       {/* Cyberpunk page header */}
       <div className="relative overflow-hidden pt-24 pb-16">
-        <CyberpunkBg variant="header" />
+        <GamingBg variant="header" />
         <div className="relative z-10 max-w-7xl mx-auto px-4">
           <h1 className="text-5xl font-black text-white mb-3">Torneos</h1>
           <p className="text-gray-400 text-lg">Encuentra tu próxima competencia en LATAM</p>

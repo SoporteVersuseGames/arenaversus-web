@@ -3,7 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import CyberpunkBg from '@/components/ui/CyberpunkBg'
+import GamingBg from '@/components/ui/GamingBg'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -23,7 +23,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
-      <CyberpunkBg />
+      <GamingBg />
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-xl bg-av-gradient flex items-center justify-center font-black text-white text-lg mx-auto mb-4">AV</div>

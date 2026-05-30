@@ -56,57 +56,19 @@
   to   { opacity: 0.22; }
 }
 
-/* ── Cyberpunk Background ─────────────────────────────────────── */
+/* ── Gaming Particles Background ─────────────────────────────── */
 
-.cyberpunk-grid {
+.gaming-particle {
   position: absolute;
-  bottom: 0;
-  left: -60%;
-  right: -60%;
-  height: 60%;
-  background-image:
-    linear-gradient(rgba(255, 61, 0, 0.35) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 61, 0, 0.35) 1px, transparent 1px);
-  background-size: 70px 70px;
-  transform: perspective(400px) rotateX(62deg);
-  transform-origin: 50% 100%;
-  animation: cyberpunk-grid-scroll 3s linear infinite;
-  mask-image: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
-}
-
-@keyframes cyberpunk-grid-scroll {
-  from { background-position: 0 0; }
-  to   { background-position: 0 70px; }
-}
-
-.cyberpunk-lightning {
-  position: absolute;
-  filter: drop-shadow(0 0 6px #FF3D00) drop-shadow(0 0 18px rgba(255, 61, 0, 0.7));
-  opacity: 0;
-  animation: cyberpunk-flash 6s ease-in-out infinite;
-}
-
-.cyberpunk-lightning-2 { animation-delay: 2.8s; }
-.cyberpunk-lightning-3 { animation-delay: 4.5s; }
-
-@keyframes cyberpunk-flash {
-  0%, 82%, 100%  { opacity: 0; }
-  84%            { opacity: 1; }
-  86%            { opacity: 0.15; }
-  88%            { opacity: 0.9; }
-  90%            { opacity: 0; }
-}
-
-.cyberpunk-scanlines {
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent 0px,
-    transparent 3px,
-    rgba(0, 0, 0, 0.06) 3px,
-    rgba(0, 0, 0, 0.06) 4px
-  );
+  bottom: -8px;
+  border-radius: 50%;
+  animation: particle-rise linear infinite;
   pointer-events: none;
+}
+
+@keyframes particle-rise {
+  0%   { transform: translateY(0) translateX(0); opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { transform: translateY(calc(-100vh - 30px)) translateX(var(--particle-drift, 0px)); opacity: 0; }
 }
