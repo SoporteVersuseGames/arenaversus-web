@@ -12,6 +12,8 @@ export default async function PlayerProfilePage({ params }: Props) {
   const { username } = await params
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+
   let profileData: Profile | null = null
   try {
     const { data } = await supabase.from('profiles').select('*').eq('username', username).single()
@@ -21,6 +23,8 @@ export default async function PlayerProfilePage({ params }: Props) {
   }
   if (!profileData) notFound()
   const profile = profileData
+
+  const isOwner = user?.id === profile.id
 
   let matchResults: MatchResult[] = []
   try {
@@ -53,11 +57,22 @@ export default async function PlayerProfilePage({ params }: Props) {
     <div className="max-w-4xl mx-auto px-4 pt-24 pb-16">
       {/* Hero del perfil */}
       <div className="bg-[#1c1c1c] border border-white/7 rounded-2xl p-8 mb-6 flex flex-col sm:flex-row items-center sm:items-start gap-6">
-        <div className="w-20 h-20 rounded-full bg-av-gradient flex items-center justify-center font-black text-white text-3xl shrink-0">
-          {initial}
-        </div>
+        {profile.avatar_url ? (
+          <img src={profile.avatar_url} alt={profile.username ?? ''} className="w-20 h-20 rounded-full object-cover shrink-0" />
+        ) : (
+          <div className="w-20 h-20 rounded-full bg-av-gradient flex items-center justify-center font-black text-white text-3xl shrink-0">
+            {initial}
+          </div>
+        )}
         <div className="flex-1 text-center sm:text-left">
-          <h1 className="text-3xl font-black text-white mb-1">{profile.username}</h1>
+          <div className="flex items-start justify-between gap-4">
+            <h1 className="text-3xl font-black text-white mb-1">{profile.username}</h1>
+            {isOwner && (
+              <Link href="/dashboard" className="shrink-0 text-xs text-gray-400 hover:text-white border border-white/10 rounded-lg px-3 py-1.5 transition-colors">
+                ✏️ Editar perfil
+              </Link>
+            )}
+          </div>
           {profile.full_name && <p className="text-gray-400 mb-2">{profile.full_name}</p>}
           <div className="flex flex-wrap justify-center sm:justify-start gap-4 text-sm text-gray-400">
             {profile.country && <span>🌍 {COUNTRIES_MAP[profile.country] ?? profile.country}</span>}

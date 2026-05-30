@@ -6,6 +6,7 @@ export interface Profile {
   discord_tag: string | null
   country: string | null
   updated_at: string | null
+  avatar_url: string | null
 }
 
 export interface Tournament {
