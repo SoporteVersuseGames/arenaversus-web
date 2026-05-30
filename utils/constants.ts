@@ -41,7 +41,6 @@ export function getGameIcon(game: string): string {
 
 export function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return 'Por definir'
-  return new Date(dateStr).toLocaleDateString('es-ES', {
-    day: '2-digit', month: 'long', year: 'numeric',
-  })
+  const d = dateStr.includes('T') ? new Date(dateStr) : new Date(dateStr + 'T00:00:00')
+  return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
 }

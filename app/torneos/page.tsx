@@ -5,8 +5,8 @@ import type { Tournament } from '@/lib/types'
 async function getData(): Promise<{ tournaments: Tournament[]; userId: string | null; registeredIds: Set<string> }> {
   try {
     const supabase = await createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    const userId = session?.user?.id ?? null
+    const { data: { user } } = await supabase.auth.getUser()
+    const userId = user?.id ?? null
 
     const [tournamentsRes, registrationsRes] = await Promise.all([
       supabase.from('tournaments').select('*').order('start_date', { ascending: true }),
