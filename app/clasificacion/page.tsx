@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import GameIcon from '@/components/ui/GameIcon'
-import GamingBg from '@/components/ui/GamingBg'
 import { GAMES_MAP, COUNTRIES_MAP } from '@/utils/constants'
 
 interface PlayerStats {
@@ -92,13 +91,9 @@ export default async function ClasificacionPage() {
 
   return (
     <>
-      {/* Cyberpunk page header */}
-      <div className="relative overflow-hidden pt-24 pb-14">
-        <GamingBg variant="header" />
-        <div className="relative z-10 max-w-5xl mx-auto px-4">
-          <h1 className="text-5xl font-black text-white mb-3">Clasificación</h1>
-          <p className="text-gray-400 text-lg">Ranking de jugadores por victorias y winrate</p>
-        </div>
+      <div className="pt-24 pb-12 max-w-5xl mx-auto px-4">
+        <h1 className="text-5xl font-black text-white mb-3">Clasificación</h1>
+        <p className="text-gray-400 text-lg">Ranking de jugadores por victorias y winrate</p>
       </div>
 
       {/* Table content */}
