@@ -40,9 +40,12 @@ export default async function TorneosPage() {
 
       {active.length > 0 && (
         <section className="mb-12">
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" /> Activos e Inscripciones Abiertas
-          </h2>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-1 h-5 rounded-full bg-[#FF3D00]" />
+            <h2 className="text-xl font-bold text-white">
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#39FF14' }} /> Activos e Inscripciones Abiertas
+            </h2>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {active.map(t => (
               <TournamentCard key={t.id} tournament={t} showBracketLink userId={userId} isRegistered={registeredIds.has(t.id)} />
@@ -53,7 +56,10 @@ export default async function TorneosPage() {
 
       {upcoming.length > 0 && (
         <section className="mb-12">
-          <h2 className="text-xl font-bold text-white mb-6">Próximamente</h2>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-1 h-5 rounded-full bg-[#FF3D00]" />
+            <h2 className="text-xl font-bold text-white">Próximamente</h2>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {upcoming.map(t => <TournamentCard key={t.id} tournament={t} userId={userId} />)}
           </div>
@@ -62,7 +68,10 @@ export default async function TorneosPage() {
 
       {finished.length > 0 && (
         <section>
-          <h2 className="text-xl font-bold text-gray-500 mb-6">Finalizados</h2>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-1 h-5 rounded-full bg-white/20" />
+            <h2 className="text-xl font-bold text-gray-500">Finalizados</h2>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 opacity-60">
             {finished.map(t => (
               <TournamentCard key={t.id} tournament={t} showBracketLink userId={userId} isRegistered={registeredIds.has(t.id)} />
@@ -73,7 +82,9 @@ export default async function TorneosPage() {
 
       {tournaments.length === 0 && (
         <div className="text-center py-20 text-gray-500">
-          <div className="text-5xl mb-4">🏆</div>
+          <div className="w-16 h-16 rounded-2xl bg-[#FF3D00]/10 border border-[#FF3D00]/20 flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">🏆</span>
+          </div>
           <p className="text-lg font-medium">No hay torneos disponibles aún</p>
         </div>
       )}
