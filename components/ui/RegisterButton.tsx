@@ -25,28 +25,46 @@ export default function RegisterButton({ tournamentId, userId, isRegistered, isF
     )
   }
 
-  const uid = userId
-
   async function handleRegister() {
     setLoading(true)
-    const supabase = createClient()
-    await supabase.from('registrations').insert({ player_id: uid, tournament_id: tournamentId })
-    await supabase.from('tournaments').update({ current_players: players + 1 }).eq('id', tournamentId)
-    setRegistered(true)
-    setPlayers(p => p + 1)
-    setLoading(false)
-    router.refresh()
+    try {
+      const supabase = createClient()
+      const { error: regError } = await supabase
+        .from('registrations')
+        .insert({ player_id: userId, tournament_id: tournamentId })
+      if (regError) return
+      await supabase
+        .from('tournaments')
+        .update({ current_players: players + 1 })
+        .eq('id', tournamentId)
+      setRegistered(true)
+      setPlayers(p => p + 1)
+      router.refresh()
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function handleUnregister() {
     setLoading(true)
-    const supabase = createClient()
-    await supabase.from('registrations').delete().eq('player_id', uid).eq('tournament_id', tournamentId)
-    await supabase.from('tournaments').update({ current_players: Math.max(0, players - 1) }).eq('id', tournamentId)
-    setRegistered(false)
-    setPlayers(p => Math.max(0, p - 1))
-    setLoading(false)
-    router.refresh()
+    try {
+      const supabase = createClient()
+      const { error: delError } = await supabase
+        .from('registrations')
+        .delete()
+        .eq('player_id', userId)
+        .eq('tournament_id', tournamentId)
+      if (delError) return
+      await supabase
+        .from('tournaments')
+        .update({ current_players: Math.max(0, players - 1) })
+        .eq('id', tournamentId)
+      setRegistered(false)
+      setPlayers(p => Math.max(0, p - 1))
+      router.refresh()
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (registered) {
