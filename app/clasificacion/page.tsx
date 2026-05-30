@@ -1,18 +1,75 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { COUNTRIES_MAP } from '@/utils/constants'
+import { GAMES_MAP, COUNTRIES_MAP } from '@/utils/constants'
 
-async function getStandings() {
+interface PlayerStats {
+  id: string
+  username: string | null
+  full_name: string | null
+  country: string | null
+  tournaments: number
+  wins: number
+  losses: number
+  draws: number
+  total: number
+  winrate: number
+  mainGame: string
+}
+
+async function getStandings(): Promise<PlayerStats[]> {
   try {
     const supabase = await createClient()
-    const { data: profiles } = await supabase.from('profiles').select('id, username, full_name, country')
-    const { data: regs } = await supabase.from('registrations').select('player_id')
+    const [profilesRes, matchesRes, regsRes] = await Promise.all([
+      supabase.from('profiles').select('id, username, full_name, country'),
+      supabase.from('match_results').select('player_id, result, tournaments(game)'),
+      supabase.from('registrations').select('player_id'),
+    ])
 
-    const counts: Record<string, number> = {}
-    regs?.forEach((r: { player_id: string }) => { counts[r.player_id] = (counts[r.player_id] ?? 0) + 1 })
+    const profiles = profilesRes.data ?? []
+    const matches = (matchesRes.data ?? []) as unknown as {
+      player_id: string
+      result: string
+      tournaments: { game: string } | null
+    }[]
+    const regs = (regsRes.data ?? []) as { player_id: string }[]
 
-    return (profiles ?? [])
-      .map(p => ({ ...p, tournament_count: counts[p.id] ?? 0 }))
-      .sort((a, b) => b.tournament_count - a.tournament_count)
+    const tournamentCounts: Record<string, number> = {}
+    regs.forEach(r => {
+      tournamentCounts[r.player_id] = (tournamentCounts[r.player_id] ?? 0) + 1
+    })
+
+    const statsMap: Record<string, { wins: number; losses: number; draws: number; games: Record<string, number> }> = {}
+    matches.forEach(m => {
+      if (!statsMap[m.player_id]) statsMap[m.player_id] = { wins: 0, losses: 0, draws: 0, games: {} }
+      const s = statsMap[m.player_id]
+      if (m.result === 'win') s.wins++
+      else if (m.result === 'loss') s.losses++
+      else if (m.result === 'draw') s.draws++
+      const game = m.tournaments?.game ?? ''
+      if (game) s.games[game] = (s.games[game] ?? 0) + 1
+    })
+
+    return (profiles as { id: string; username: string | null; full_name: string | null; country: string | null }[])
+      .map(p => {
+        const s = statsMap[p.id] ?? { wins: 0, losses: 0, draws: 0, games: {} }
+        const total = s.wins + s.losses + s.draws
+        const winrate = total > 0 ? Math.round((s.wins / total) * 100) : 0
+        const mainGame = Object.entries(s.games).sort((a, b) => b[1] - a[1])[0]?.[0] ?? ''
+        return {
+          id: p.id,
+          username: p.username,
+          full_name: p.full_name,
+          country: p.country,
+          tournaments: tournamentCounts[p.id] ?? 0,
+          wins: s.wins,
+          losses: s.losses,
+          draws: s.draws,
+          total,
+          winrate,
+          mainGame,
+        }
+      })
+      .sort((a, b) => b.wins - a.wins || b.winrate - a.winrate || b.total - a.total)
   } catch {
     return []
   }
@@ -22,40 +79,75 @@ export default async function ClasificacionPage() {
   const players = await getStandings()
 
   return (
-    <div className="max-w-4xl mx-auto px-4 pt-24 pb-16">
+    <div className="max-w-5xl mx-auto px-4 pt-24 pb-16">
       <div className="mb-12">
         <h1 className="text-4xl font-black text-white mb-3">Clasificación</h1>
-        <p className="text-gray-400">Ranking de jugadores por participación</p>
+        <p className="text-gray-400">Ranking de jugadores por victorias y winrate</p>
       </div>
+
       <div className="bg-[#1c1c1c] border border-white/7 rounded-xl overflow-hidden">
-        <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-white/7 text-gray-500 text-xs font-semibold uppercase tracking-wider">
+        <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 border-b border-white/7 text-gray-500 text-xs font-semibold uppercase tracking-wider">
           <span className="col-span-1">#</span>
-          <span className="col-span-6">Jugador</span>
-          <span className="col-span-3">País</span>
-          <span className="col-span-2 text-right">Torneos</span>
+          <span className="col-span-4">Jugador</span>
+          <span className="col-span-2">Juego</span>
+          <span className="col-span-1 text-center">T</span>
+          <span className="col-span-1 text-center text-green-400">V</span>
+          <span className="col-span-1 text-center text-red-400">D</span>
+          <span className="col-span-1 text-center">E</span>
+          <span className="col-span-1 text-right">WR</span>
         </div>
+
         {players.map((player, i) => (
-          <div key={player.id} className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-white/5 hover:bg-white/3 transition-colors items-center">
-            <span className={`col-span-1 font-bold text-sm ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-gray-300' : i === 2 ? 'text-[#ec622b]' : 'text-gray-500'}`}>
+          <div key={player.id} className="grid grid-cols-12 gap-2 md:gap-4 px-6 py-4 border-b border-white/5 hover:bg-white/[0.02] transition-colors items-center">
+            <span className={`col-span-1 font-bold text-sm ${
+              i === 0 ? 'text-yellow-400' : i === 1 ? 'text-gray-300' : i === 2 ? 'text-[#ec622b]' : 'text-gray-600'
+            }`}>
               {i + 1}
             </span>
-            <div className="col-span-6 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-av-gradient flex items-center justify-center font-bold text-white text-xs">
+            <div className="col-span-7 md:col-span-4 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-av-gradient flex items-center justify-center font-bold text-white text-xs shrink-0">
                 {(player.username || '?')[0].toUpperCase()}
               </div>
-              <div>
-                <div className="font-semibold text-white text-sm">{player.username ?? 'Jugador'}</div>
-                {player.full_name && <div className="text-gray-500 text-xs">{player.full_name}</div>}
+              <div className="min-w-0">
+                {player.username ? (
+                  <Link href={`/players/${player.username}`} className="font-semibold text-white text-sm hover:text-[#ea3935] transition-colors truncate block">
+                    {player.username}
+                  </Link>
+                ) : (
+                  <span className="font-semibold text-white text-sm truncate block">Jugador</span>
+                )}
+                {player.country && (
+                  <span className="text-gray-500 text-xs">{COUNTRIES_MAP[player.country] ?? player.country}</span>
+                )}
               </div>
             </div>
-            <span className="col-span-3 text-gray-400 text-sm">
-              {player.country ? (COUNTRIES_MAP[player.country] ?? player.country) : '—'}
-            </span>
-            <span className="col-span-2 text-right font-bold text-white text-sm">{player.tournament_count}</span>
+            <div className="hidden md:block col-span-2 text-sm text-gray-400 truncate">
+              {player.mainGame
+                ? `${(GAMES_MAP[player.mainGame] ?? '🎮').split(' ')[0]} ${GAMES_MAP[player.mainGame]?.split(' ').slice(1).join(' ') ?? player.mainGame}`
+                : '—'}
+            </div>
+            <span className="hidden md:block col-span-1 text-center text-gray-400 text-sm">{player.tournaments}</span>
+            <span className="hidden md:block col-span-1 text-center text-green-400 font-semibold text-sm">{player.wins}</span>
+            <span className="hidden md:block col-span-1 text-center text-red-400 text-sm">{player.losses}</span>
+            <span className="hidden md:block col-span-1 text-center text-gray-500 text-sm">{player.draws}</span>
+            <div className="col-span-4 md:col-span-1 text-right">
+              <span className={`font-bold text-sm ${
+                player.total === 0 ? 'text-gray-600'
+                : player.winrate >= 60 ? 'text-green-400'
+                : player.winrate >= 40 ? 'text-gray-300'
+                : 'text-red-400'
+              }`}>
+                {player.total === 0 ? '—' : `${player.winrate}%`}
+              </span>
+            </div>
           </div>
         ))}
+
         {players.length === 0 && (
-          <div className="text-center py-16 text-gray-500"><div className="text-4xl mb-3">🏅</div><p>No hay jugadores aún</p></div>
+          <div className="text-center py-16 text-gray-500">
+            <div className="text-4xl mb-3">🏅</div>
+            <p>No hay jugadores aún</p>
+          </div>
         )}
       </div>
     </div>
