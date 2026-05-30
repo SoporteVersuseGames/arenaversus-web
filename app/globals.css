@@ -49,3 +49,9 @@
 .ticker-track:hover {
   animation-play-state: paused;
 }
+
+/* Hero photo crossfade animation */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 0.22; }
+}
