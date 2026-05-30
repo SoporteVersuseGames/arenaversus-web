@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import CyberpunkBg from '@/components/ui/CyberpunkBg'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
@@ -30,13 +31,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-20 relative overflow-hidden">
-      {/* decorative glow */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse 60% 50% at 50% 0%, rgba(255,61,0,0.10) 0%, transparent 70%)',
-        }}
-      />
+      <CyberpunkBg />
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-xl bg-av-gradient flex items-center justify-center font-black text-white text-lg mx-auto mb-4">AV</div>

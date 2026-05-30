@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import GameIcon from '@/components/ui/GameIcon'
+import CyberpunkBg from '@/components/ui/CyberpunkBg'
 import { GAMES_MAP, COUNTRIES_MAP } from '@/utils/constants'
 
 interface PlayerStats {
@@ -90,12 +91,18 @@ export default async function ClasificacionPage() {
   const players = await getStandings()
 
   return (
-    <div className="max-w-5xl mx-auto px-4 pt-24 pb-16">
-      <div className="mb-12">
-        <h1 className="text-4xl font-black text-white mb-3">Clasificación</h1>
-        <p className="text-gray-400">Ranking de jugadores por victorias y winrate</p>
+    <>
+      {/* Cyberpunk page header */}
+      <div className="relative overflow-hidden pt-24 pb-14">
+        <CyberpunkBg variant="header" />
+        <div className="relative z-10 max-w-5xl mx-auto px-4">
+          <h1 className="text-5xl font-black text-white mb-3">Clasificación</h1>
+          <p className="text-gray-400 text-lg">Ranking de jugadores por victorias y winrate</p>
+        </div>
       </div>
 
+      {/* Table content */}
+      <div className="max-w-5xl mx-auto px-4 pb-16">
       <div className="bg-[#141414] border border-white/[0.07] rounded-xl overflow-hidden">
         {/* Header row */}
         <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 border-b border-white/[0.07] bg-[#0f0f0f] text-gray-500 text-xs font-semibold uppercase tracking-wider">
@@ -210,6 +217,7 @@ export default async function ClasificacionPage() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   )
 }
