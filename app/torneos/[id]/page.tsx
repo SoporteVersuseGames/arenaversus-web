@@ -1,10 +1,11 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { GAMES_MAP, COUNTRIES_MAP, formatDate } from '@/utils/constants'
+import { COUNTRIES_MAP, formatDate, toGameKey, GAME_COLORS, GAME_PHOTOS } from '@/utils/constants'
 import type { Tournament, MatchResult } from '@/lib/types'
 import StatusPill from '@/components/ui/StatusPill'
 import RegisterButton from '@/components/ui/RegisterButton'
+import GameIcon from '@/components/ui/GameIcon'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -71,6 +72,10 @@ export default async function TournamentDetailPage({ params }: Props) {
   const spotsLeft = t.max_players - t.current_players
   const pct = Math.min((t.current_players / t.max_players) * 100, 100)
 
+  const gameKey  = toGameKey(t.game)
+  const gameColor = GAME_COLORS[gameKey] ?? '#FF3D00'
+  const gamePhoto = GAME_PHOTOS[gameKey]
+
   const bracketMatches = allResults
   const maxRound = bracketMatches.length > 0
     ? Math.max(...bracketMatches.map(m => m.round ?? 1))
@@ -85,49 +90,69 @@ export default async function TournamentDetailPage({ params }: Props) {
 
   return (
     <div className="max-w-4xl mx-auto px-4 pt-24 pb-16">
-      <Link href="/torneos" className="text-gray-500 text-sm hover:text-white transition-colors mb-6 inline-block">
+      <Link href="/torneos" className="text-gray-500 text-sm hover:text-[#FF3D00] transition-colors mb-6 inline-flex items-center gap-1">
         ← Volver a Torneos
       </Link>
 
       {/* Hero */}
-      <div className="bg-[#1c1c1c] border border-white/7 rounded-2xl p-8 mb-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="text-4xl">{(GAMES_MAP[t.game] ?? '🎮 ').split(' ')[0]}</div>
-          <StatusPill status={t.status} />
-        </div>
-        <h1 className="text-3xl font-black text-white mb-2">{t.title}</h1>
-        {t.description && <p className="text-gray-400 mb-4">{t.description}</p>}
-        <div className="flex flex-wrap gap-4 text-sm text-gray-400 mb-6">
-          <span>📅 {formatDate(t.start_date)}</span>
-          {t.format && <span>📋 {t.format}</span>}
-          <span>🎮 {GAMES_MAP[t.game] ?? t.game}</span>
-          {t.prize_description && <span>🏆 {t.prize_description}</span>}
-        </div>
-        <div className="flex items-center justify-between text-sm mb-2">
-          <span className="text-gray-400">{t.current_players}/{t.max_players} jugadores</span>
-          <span className={spotsLeft <= 5 ? 'text-[#ea3935] font-semibold' : 'text-gray-400'}>
-            {spotsLeft > 0 ? `${spotsLeft} cupos disponibles` : 'Torneo lleno'}
-          </span>
-        </div>
-        <div className="w-full bg-white/10 rounded-full h-1.5 mb-6">
-          <div className="bg-av-gradient h-1.5 rounded-full transition-all" style={{ width: `${pct}%` }} />
-        </div>
-        {t.status === 'open' && (
-          <div className="max-w-xs">
-            <RegisterButton
-              tournamentId={t.id}
-              userId={userId}
-              isRegistered={isRegistered}
-              isFull={spotsLeft <= 0}
-              currentPlayers={t.current_players}
-            />
+      <div className="bg-[#141414] border border-white/[0.07] rounded-2xl overflow-hidden mb-6">
+        {/* Photo header */}
+        <div className="relative h-32 overflow-hidden">
+          {gamePhoto ? (
+            <>
+              <img src={gamePhoto} alt="" className="absolute inset-0 w-full h-full object-cover opacity-50" loading="lazy" />
+              <div className="absolute inset-0" style={{ backgroundColor: gameColor + '73' }} />
+            </>
+          ) : (
+            <div className="absolute inset-0" style={{ backgroundColor: gameColor + 'aa' }} />
+          )}
+          <div className="absolute inset-0 flex items-end px-8 pb-4">
+            <div className="flex items-center gap-3">
+              <GameIcon game={t.game} size="md" />
+              <div>
+                <div className="text-xs font-bold text-white/80 uppercase tracking-wider">{t.game}</div>
+                <div className="text-white/60 text-xs">{t.format ?? ''}</div>
+              </div>
+            </div>
           </div>
-        )}
+          <div className="absolute top-4 right-4">
+            <StatusPill status={t.status} />
+          </div>
+        </div>
+        {/* Body */}
+        <div className="p-8">
+          <h1 className="text-3xl font-black text-white mb-2">{t.title}</h1>
+          {t.description && <p className="text-gray-400 mb-4">{t.description}</p>}
+          <div className="flex flex-wrap gap-4 text-sm text-gray-400 mb-6">
+            <span>📅 {formatDate(t.start_date)}</span>
+            {t.prize_description && <span>🏆 {t.prize_description}</span>}
+          </div>
+          <div className="flex items-center justify-between text-sm mb-2">
+            <span className="text-gray-400">{t.current_players}/{t.max_players} jugadores</span>
+            <span className={spotsLeft <= 5 ? 'text-[#FF3D00] font-semibold' : 'text-gray-400'}>
+              {spotsLeft > 0 ? `${spotsLeft} cupos disponibles` : 'Torneo lleno'}
+            </span>
+          </div>
+          <div className="w-full bg-white/10 rounded-full h-1.5 mb-6">
+            <div className="h-1.5 rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: gameColor }} />
+          </div>
+          {t.status === 'open' && (
+            <div className="max-w-xs">
+              <RegisterButton
+                tournamentId={t.id}
+                userId={userId}
+                isRegistered={isRegistered}
+                isFull={spotsLeft <= 0}
+                currentPlayers={t.current_players}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Participants */}
-      <div className="bg-[#1c1c1c] border border-white/7 rounded-xl overflow-hidden mb-6">
-        <div className="px-6 py-4 border-b border-white/7">
+      <div className="bg-[#141414] border border-white/[0.07] rounded-xl overflow-hidden mb-6">
+        <div className="px-6 py-4 border-b border-white/[0.07]">
           <h2 className="font-bold text-white">Participantes ({participants.length})</h2>
         </div>
         {participants.length === 0 ? (
@@ -152,7 +177,7 @@ export default async function TournamentDetailPage({ params }: Props) {
               )
               return p.username ? (
                 <Link key={p.id} href={`/players/${p.username}`}
-                  className="flex items-center gap-2 bg-[#111111] rounded-lg px-3 py-2 border border-white/5 hover:border-[#ea3935]/30 transition-all">
+                  className="flex items-center gap-2 bg-[#111111] rounded-lg px-3 py-2 border border-white/5 hover:border-[#FF3D00]/30 transition-all">
                   {inner}
                 </Link>
               ) : (
@@ -166,8 +191,8 @@ export default async function TournamentDetailPage({ params }: Props) {
       </div>
 
       {/* Bracket */}
-      <div className="bg-[#1c1c1c] border border-white/7 rounded-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/7">
+      <div className="bg-[#141414] border border-white/[0.07] rounded-xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/[0.07]">
           <h2 className="font-bold text-white">Bracket</h2>
         </div>
         {bracketMatches.length === 0 ? (
@@ -197,7 +222,7 @@ export default async function TournamentDetailPage({ params }: Props) {
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="text-green-400 font-bold text-xs shrink-0">W</span>
                               {winnerUsername ? (
-                                <Link href={`/players/${winnerUsername}`} className="text-white text-sm font-medium truncate hover:text-[#ea3935] transition-colors">
+                                <Link href={`/players/${winnerUsername}`} className="text-white text-sm font-medium truncate hover:text-[#FF3D00] transition-colors">
                                   {winnerUsername}
                                 </Link>
                               ) : (
@@ -209,7 +234,7 @@ export default async function TournamentDetailPage({ params }: Props) {
                           <div className="flex items-center px-3 py-2">
                             <span className="text-red-400 font-bold text-xs shrink-0 mr-2">L</span>
                             {loserUsername ? (
-                              <Link href={`/players/${loserUsername}`} className="text-gray-500 text-sm truncate hover:text-[#ea3935] transition-colors">
+                              <Link href={`/players/${loserUsername}`} className="text-gray-500 text-sm truncate hover:text-[#FF3D00] transition-colors">
                                 {loserUsername}
                               </Link>
                             ) : (
