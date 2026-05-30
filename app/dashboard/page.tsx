@@ -17,6 +17,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saveOk, setSaveOk] = useState(false)
+  const [profileError, setProfileError] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [matchResults, setMatchResults] = useState<MatchResult[]>([])
   const router = useRouter()
@@ -47,19 +48,60 @@ export default function DashboardPage() {
     e.preventDefault()
     if (!profile) return
     setSaving(true)
+    setProfileError(null)
     const supabase = createClient()
     const fd = new FormData(e.currentTarget)
+    const newUsername = fd.get('username') as string
+
+    if (newUsername !== profile.username) {
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', newUsername)
+        .neq('id', profile.id)
+        .maybeSingle()
+      if (existing) {
+        setProfileError('Este username ya está en uso')
+        setSaving(false)
+        return
+      }
+    }
+
+    let avatarUrl: string | null = profile.avatar_url ?? null
+    const avatarFile = fd.get('avatar') as File
+    if (avatarFile && avatarFile.size > 0) {
+      const ext = avatarFile.name.split('.').pop() ?? 'jpg'
+      const path = `${profile.id}/avatar.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, avatarFile, { upsert: true })
+      if (uploadError) {
+        setProfileError(uploadError.message)
+        setSaving(false)
+        return
+      }
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
+      avatarUrl = urlData.publicUrl
+    }
+
     const updates = {
-      username: fd.get('username') as string,
+      username: newUsername,
       full_name: `${fd.get('firstName')} ${fd.get('lastName')}`.trim(),
       bio: fd.get('bio') as string,
       discord_tag: fd.get('discord') as string,
       country: fd.get('country') as string,
+      avatar_url: avatarUrl,
       updated_at: new Date().toISOString(),
     }
-    await supabase.from('profiles').update(updates).eq('id', profile.id)
+    const { error: updateError } = await supabase.from('profiles').update(updates).eq('id', profile.id)
+    if (updateError) {
+      setProfileError(updateError.message)
+      setSaving(false)
+      return
+    }
     setProfile(prev => prev ? { ...prev, ...updates } : prev)
-    setSaving(false); setSaveOk(true)
+    setSaving(false)
+    setSaveOk(true)
     setTimeout(() => setSaveOk(false), 3000)
   }
 
@@ -100,7 +142,11 @@ export default function DashboardPage() {
         <div className="p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="relative">
-              <div className="w-10 h-10 rounded-full bg-av-gradient flex items-center justify-center font-bold text-white">{initial}</div>
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-av-gradient flex items-center justify-center font-bold text-white">{initial}</div>
+              )}
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-[#111111]" />
             </div>
             <div className="min-w-0">
@@ -151,7 +197,11 @@ export default function DashboardPage() {
               ))}
             </div>
             <div className="bg-[#1c1c1c] border border-white/7 rounded-xl p-6 flex items-center gap-5">
-              <div className="w-16 h-16 rounded-full bg-av-gradient flex items-center justify-center font-black text-white text-2xl">{initial}</div>
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="" className="w-16 h-16 rounded-full object-cover shrink-0" />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-av-gradient flex items-center justify-center font-black text-white text-2xl shrink-0">{initial}</div>
+              )}
               <div>
                 <div className="text-xs text-gray-500 mb-1">Jugador Arena Versus</div>
                 <div className="text-2xl font-black text-gradient">{profile?.username}</div>
@@ -307,6 +357,17 @@ export default function DashboardPage() {
           <div className="max-w-lg">
             <h1 className="text-2xl font-black text-white mb-6 hidden md:block">Editar Perfil</h1>
             <form onSubmit={handleSaveProfile} className="bg-[#1c1c1c] border border-white/7 rounded-xl p-6 space-y-4">
+              <div className="flex items-center gap-4">
+                {profile.avatar_url ? (
+                  <img src={profile.avatar_url} alt="" className="w-16 h-16 rounded-full object-cover shrink-0" />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-av-gradient flex items-center justify-center font-black text-white text-xl shrink-0">{initial}</div>
+                )}
+                <div className="flex-1">
+                  <label className="block text-gray-300 text-sm mb-1.5">Foto de perfil</label>
+                  <input name="avatar" type="file" accept="image/*" className="w-full text-gray-400 text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-[#ea3935]/10 file:text-[#ea3935] file:text-xs file:font-medium hover:file:bg-[#ea3935]/20 cursor-pointer" />
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-gray-300 text-sm mb-1.5">Nombre</label>
@@ -320,6 +381,7 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-gray-300 text-sm mb-1.5">Username</label>
                 <input name="username" defaultValue={profile.username ?? ''} required className="w-full bg-[#111111] border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#ea3935]/50 transition-colors" />
+                {profileError && <p className="text-red-400 text-sm mt-1">{profileError}</p>}
               </div>
               <div>
                 <label className="block text-gray-300 text-sm mb-1.5">País</label>
