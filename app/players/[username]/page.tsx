@@ -57,7 +57,13 @@ export default async function PlayerProfilePage({ params }: Props) {
   return (
     <div className="max-w-4xl mx-auto px-4 pt-24 pb-16">
       {/* Hero del perfil */}
-      <div className="bg-[#1c1c1c] border border-white/7 rounded-2xl p-8 mb-6 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+      <div className="relative bg-[#1c1c1c] border border-white/7 rounded-2xl p-8 mb-6 flex flex-col sm:flex-row items-center sm:items-start gap-6 overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse 60% 40% at 50% 50%, rgba(255,61,0,0.18) 0%, transparent 70%)',
+          }}
+        />
         {profile.avatar_url ? (
           <img src={profile.avatar_url} alt="" className="w-20 h-20 rounded-full object-cover shrink-0" />
         ) : (
@@ -93,7 +99,7 @@ export default async function PlayerProfilePage({ params }: Props) {
           { label: 'Empates', value: draws, icon: '🤝' },
           { label: 'Partidas', value: total, icon: '🎮' },
         ].map(({ label, value, icon }) => (
-          <div key={label} className="bg-[#1c1c1c] border border-white/7 rounded-xl p-4 text-center">
+          <div key={label} className="bg-[#141414] border border-white/[0.07] border-l-2 border-l-transparent hover:border-l-[#FF3D00] rounded-xl p-4 text-center transition-all">
             <div className="text-2xl mb-2">{icon}</div>
             <div className="text-2xl font-black text-gradient">{value}</div>
             <div className="text-gray-400 text-xs mt-1">{label}</div>
@@ -115,11 +121,16 @@ export default async function PlayerProfilePage({ params }: Props) {
           <div className="divide-y divide-white/5">
             {matchResults.map(m => (
               <div key={m.id} className="px-6 py-4 flex items-center gap-4 flex-wrap">
-                <div className={`w-16 text-center text-xs font-bold px-2 py-1 rounded-full ${
-                  m.result === 'win' ? 'bg-green-500/20 text-green-400' :
-                  m.result === 'loss' ? 'bg-red-500/20 text-red-400' :
-                  'bg-white/10 text-gray-400'
-                }`}>
+                <div
+                  className="w-16 text-center text-xs font-bold px-2 py-1 rounded-full"
+                  style={
+                    m.result === 'win'
+                      ? { background: 'rgba(57,255,20,0.15)', color: '#39FF14', border: '1px solid rgba(57,255,20,0.3)' }
+                      : m.result === 'loss'
+                      ? { background: 'rgba(239,68,68,0.15)', color: '#FF4444', border: '1px solid rgba(239,68,68,0.3)' }
+                      : { background: 'rgba(255,255,255,0.1)', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.15)' }
+                  }
+                >
                   {m.result === 'win' ? 'Victoria' : m.result === 'loss' ? 'Derrota' : 'Empate'}
                 </div>
                 <div className="flex-1 min-w-0">
