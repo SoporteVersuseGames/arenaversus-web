@@ -1,9 +1,22 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import TournamentCard from '@/components/ui/TournamentCard'
+import HeroTabs from '@/components/ui/HeroTabs'
+import MediaTicker from '@/components/ui/MediaTicker'
 import type { Tournament } from '@/lib/types'
+import type { HeroGame } from '@/components/ui/HeroTabs'
+import {
+  GAMES_DISPLAY,
+  COUNTRIES_MAP,
+  formatDate,
+  toGameKey,
+  GAME_PHOTOS,
+  GAME_COLORS,
+} from '@/utils/constants'
 
-async function getFeaturedTournaments(): Promise<Tournament[]> {
+// ─── Data fetchers ────────────────────────────────────────────────────────────
+
+async function getActiveTournaments(): Promise<Tournament[]> {
   try {
     const supabase = await createClient()
     const { data } = await supabase
@@ -11,7 +24,7 @@ async function getFeaturedTournaments(): Promise<Tournament[]> {
       .select('*')
       .in('status', ['open', 'upcoming', 'in_progress'])
       .order('start_date', { ascending: true })
-      .limit(4)
+      .limit(20)
     return data ?? []
   } catch {
     return []
@@ -31,32 +44,136 @@ async function getStats() {
   }
 }
 
-const GAMES = [
-  { name: 'FC 26', icon: '⚽', players: '11 vs 11' },
-  { name: 'Valorant', icon: '🎯', players: '5 vs 5' },
-  { name: 'League of Legends', icon: '⚔️', players: '5 vs 5' },
-  { name: 'Fortnite', icon: '🔫', players: 'Battle Royale' },
-  { name: 'Free Fire', icon: '🔥', players: 'Battle Royale' },
-  { name: 'Rocket League', icon: '🚀', players: '3 vs 3' },
-  { name: 'Street Fighter', icon: '👊', players: '1 vs 1' },
-  { name: 'Clash Royale', icon: '👑', players: '1 vs 1' },
-]
+async function getTopPlayers() {
+  try {
+    const supabase = await createClient()
+    const [profilesRes, matchesRes] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('id, username, country, avatar_url')
+        .not('username', 'is', null),
+      supabase.from('match_results').select('player_id, result'),
+    ])
+
+    const profiles = (profilesRes.data ?? []) as {
+      id: string
+      username: string | null
+      country: string | null
+      avatar_url: string | null
+    }[]
+    const matches = (matchesRes.data ?? []) as { player_id: string; result: string }[]
+
+    const statsMap: Record<string, { wins: number; total: number }> = {}
+    matches.forEach(m => {
+      if (!statsMap[m.player_id]) statsMap[m.player_id] = { wins: 0, total: 0 }
+      statsMap[m.player_id].total++
+      if (m.result === 'win') statsMap[m.player_id].wins++
+    })
+
+    return profiles
+      .map(p => {
+        const s = statsMap[p.id] ?? { wins: 0, total: 0 }
+        const winrate = s.total > 0 ? Math.round((s.wins / s.total) * 100) : 0
+        return { ...p, wins: s.wins, total: s.total, winrate }
+      })
+      .sort((a, b) => b.wins - a.wins || b.winrate - a.winrate || b.total - a.total)
+      .slice(0, 5)
+  } catch {
+    return []
+  }
+}
+
+async function getLiveBanner() {
+  try {
+    const supabase = await createClient()
+    const { data: live } = await supabase
+      .from('tournaments')
+      .select('id, title, status, start_date')
+      .eq('status', 'in_progress')
+      .order('start_date', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+    if (live) return { ...live, type: 'live' as const }
+
+    const { data: next } = await supabase
+      .from('tournaments')
+      .select('id, title, status, start_date')
+      .in('status', ['open', 'upcoming'])
+      .order('start_date', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+    if (next) return { ...next, type: 'upcoming' as const }
+
+    return null
+  } catch {
+    return null
+  }
+}
+
+// ─── YouTube IDs — replace with real video IDs when available ─────────────────
+const YOUTUBE_IDS: [string, string, string] = ['', '', '']
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function HomePage() {
-  const [featured, stats] = await Promise.all([getFeaturedTournaments(), getStats()])
+  const [tournaments, stats, topPlayers, liveBanner] = await Promise.all([
+    getActiveTournaments(),
+    getStats(),
+    getTopPlayers(),
+    getLiveBanner(),
+  ])
+
+  const featured = tournaments.slice(0, 4)
+
+  // Count active tournaments per game for hero tabs
+  const gameCountMap: Record<string, number> = {}
+  tournaments.forEach(t => {
+    gameCountMap[t.game] = (gameCountMap[t.game] ?? 0) + 1
+  })
+  const heroGames: HeroGame[] = GAMES_DISPLAY.map(g => ({
+    key: g.key as string,
+    name: g.name,
+    count: gameCountMap[g.key] ?? 0,
+  }))
 
   return (
     <>
-      {/* HERO */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#ea3935]/20 rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#ec622b]/15 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
+      {/* ── LIVE BANNER ─────────────────────────────────────────────────── */}
+      {liveBanner && (
+        <div
+          className="flex items-center justify-between gap-4 px-4 sm:px-6 py-2.5 border-b border-[#FF3D00]/20"
+          style={{ background: 'rgba(255,61,0,0.07)', borderLeft: '3px solid #FF3D00' }}
+        >
+          <p className="text-sm text-white truncate">
+            {liveBanner.type === 'live' ? (
+              <>
+                <span className="text-[#FF3D00] font-bold">🔴 EN VIVO</span>
+                {' · '}{liveBanner.title}
+              </>
+            ) : (
+              <>
+                <span className="text-[#FF3D00] font-bold">⚡ PRÓXIMO</span>
+                {' · '}{liveBanner.title}
+                {liveBanner.start_date ? ` · ${formatDate(liveBanner.start_date)}` : ''}
+              </>
+            )}
+          </p>
+          <Link
+            href={`/torneos/${liveBanner.id}`}
+            className="text-xs text-[#FF3D00] font-medium hover:underline whitespace-nowrap shrink-0"
+          >
+            Ver ahora →
+          </Link>
         </div>
-        <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
-          <div className="inline-flex items-center gap-2 bg-[#ea3935]/10 border border-[#ea3935]/30 rounded-full px-4 py-2 text-sm text-[#ea3935] font-medium mb-8">
-            <span className="w-2 h-2 bg-[#ea3935] rounded-full animate-pulse" />
-            Plataforma Oficial de Torneos LATAM
+      )}
+
+      {/* ── HERO ────────────────────────────────────────────────────────── */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+        <HeroTabs games={heroGames} />
+        <div className="relative z-10 text-center max-w-4xl mx-auto px-4 pb-32 pt-8">
+          <div className="inline-flex items-center gap-2 bg-[#FF3D00]/10 border border-[#FF3D00]/30 rounded-full px-4 py-2 text-sm text-[#FF3D00] font-medium mb-8">
+            <span className="w-2 h-2 bg-[#FF3D00] rounded-full animate-pulse" />
+            ⚡ Plataforma Oficial de Torneos LATAM
           </div>
           <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight">
             Torneos de{' '}
@@ -67,10 +184,17 @@ export default async function HomePage() {
             Compite mes a mes con reglamentos profesionales. Sube de nivel. Gana reputación.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Link href="/register" className="px-8 py-4 rounded-xl bg-av-gradient text-white font-bold text-lg hover:opacity-90 transition-opacity">
+            <Link
+              href="/register"
+              className="px-8 py-4 rounded-xl bg-av-gradient text-white font-bold text-lg hover:opacity-90 transition-opacity"
+              style={{ boxShadow: '0 0 30px rgba(255,61,0,0.4)' }}
+            >
               ⚡ Empieza Ahora
             </Link>
-            <Link href="/torneos" className="px-8 py-4 rounded-xl border border-white/20 text-white font-semibold text-lg hover:border-[#ea3935]/50 hover:bg-white/5 transition-all">
+            <Link
+              href="/torneos"
+              className="px-8 py-4 rounded-xl border border-white/20 text-white font-semibold text-lg hover:border-[#FF3D00]/50 hover:bg-white/5 transition-all"
+            >
               Ver Torneos →
             </Link>
           </div>
@@ -89,68 +213,185 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-black text-white mb-4">¿Por qué Arena Versus?</h2>
-            <p className="text-gray-400 text-lg">La Liga que Hace La Diferencia</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { icon: '🏆', title: 'Compite y Escala', desc: 'Estructura profesional al alcance de cualquier jugador en LATAM. Reglamentos claros, árbitros, resultados verificados.' },
-              { icon: '🎮', title: 'Tu Estilo de Juego', desc: 'Torneos para todos los juegos competitivos. FC 26, Valorant, LoL, Fortnite y más. Elige tu arena.' },
-              { icon: '⚡', title: 'Resultados en Tiempo Real', desc: 'Brackets actualizados al instante. Sigue el progreso de cada partida y conoce tu siguiente rival.' },
-            ].map(({ icon, title, desc }) => (
-              <div key={title} className="bg-[#1c1c1c] border border-white/7 rounded-xl p-6 hover:border-[#ea3935]/30 transition-all">
-                <div className="text-4xl mb-4">{icon}</div>
-                <h3 className="text-lg font-bold text-white mb-3">{title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURED TOURNAMENTS */}
+      {/* ── FEATURED TOURNAMENTS ────────────────────────────────────────── */}
       {featured.length > 0 && (
-        <section className="py-20 px-4 bg-[#0d0d0d]">
+        <section className="py-20 px-4 bg-[#0a0a0a]">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-12">
               <div>
                 <h2 className="text-4xl font-black text-white mb-2">Torneos Destacados</h2>
                 <p className="text-gray-400">Inscríbete y compite ahora</p>
               </div>
-              <Link href="/torneos" className="text-[#ea3935] hover:underline text-sm font-medium">Ver todos →</Link>
+              <Link href="/torneos" className="text-[#FF3D00] hover:underline text-sm font-medium">
+                Ver todos →
+              </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {featured.map(t => <TournamentCard key={t.id} tournament={t} showBracketLink />)}
+              {featured.map(t => (
+                <TournamentCard key={t.id} tournament={t} showBracketLink />
+              ))}
             </div>
           </div>
         </section>
       )}
 
-      {/* GAMES */}
-      <section id="juegos" className="py-20 px-4">
+      {/* ── TOP 5 PLAYERS ───────────────────────────────────────────────── */}
+      {topPlayers.length > 0 && (
+        <section className="py-20 px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-4xl font-black text-white mb-2">Top Jugadores LATAM</h2>
+                <p className="text-gray-400">Líderes de la temporada</p>
+              </div>
+              <Link href="/clasificacion" className="text-[#FF3D00] hover:underline text-sm font-medium">
+                Ver ranking →
+              </Link>
+            </div>
+            <div className="bg-[#141414] border border-white/[0.07] rounded-xl overflow-hidden">
+              {topPlayers.map((player, i) => (
+                <div
+                  key={player.id}
+                  className="flex items-center gap-4 px-6 py-4 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors"
+                >
+                  <span
+                    className="w-7 text-center font-bold text-sm shrink-0"
+                    style={{ color: i === 0 ? '#FF3D00' : '#555' }}
+                  >
+                    #{i + 1}
+                  </span>
+                  {player.avatar_url ? (
+                    <img
+                      src={player.avatar_url}
+                      alt=""
+                      className="w-8 h-8 rounded-full object-cover shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-av-gradient flex items-center justify-center font-bold text-white text-xs shrink-0">
+                      {(player.username || '?')[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    {player.username ? (
+                      <Link
+                        href={`/players/${player.username}`}
+                        className="font-semibold text-white text-sm hover:text-[#FF3D00] transition-colors block truncate"
+                      >
+                        {player.username}
+                      </Link>
+                    ) : (
+                      <span className="font-semibold text-white text-sm block truncate">Jugador</span>
+                    )}
+                    {player.country && (
+                      <span className="text-gray-500 text-xs">
+                        {COUNTRIES_MAP[player.country] ?? player.country}
+                      </span>
+                    )}
+                  </div>
+                  <span
+                    className="text-sm font-bold shrink-0"
+                    style={{ color: i < 3 ? '#39FF14' : 'white' }}
+                  >
+                    {player.total > 0 ? `${player.winrate}%` : '—'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── GAMES GRID ──────────────────────────────────────────────────── */}
+      <section id="juegos" className="py-20 px-4 bg-[#0a0a0a]">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-black text-white mb-4">Juegos Soportados</h2>
             <p className="text-gray-400">Compite en tu título favorito</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {GAMES.map(({ name, icon, players }) => (
-              <div key={name} className="bg-[#1c1c1c] border border-white/7 rounded-xl p-5 text-center hover:border-[#ea3935]/30 transition-all">
-                <div className="text-3xl mb-2">{icon}</div>
-                <div className="font-semibold text-white text-sm">{name}</div>
-                <div className="text-gray-500 text-xs mt-1">{players}</div>
-              </div>
-            ))}
+            {GAMES_DISPLAY.map(({ key, name, format }) => {
+              const gKey  = toGameKey(key as string)
+              const photo = GAME_PHOTOS[gKey]
+              const color = GAME_COLORS[gKey] ?? '#FF3D00'
+              return (
+                <div
+                  key={key}
+                  className="game-card-hover relative rounded-xl overflow-hidden border border-white/[0.07] h-[120px] transition-all hover:scale-[1.02] cursor-default"
+                  style={{ '--game-color': color } as React.CSSProperties}
+                >
+                  {photo && (
+                    <img
+                      src={photo}
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  )}
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background: `linear-gradient(to top right, ${color}aa, transparent 60%)`,
+                    }}
+                  />
+                  <div className="absolute bottom-3 left-3">
+                    <div className="font-bold text-white text-sm leading-tight drop-shadow">{name}</div>
+                    <div className="text-gray-300/80 text-xs mt-0.5">{format}</div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section className="py-20 px-4 bg-[#0d0d0d]">
+      {/* ── MEDIA SECTION ───────────────────────────────────────────────── */}
+      <section className="py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          {/* Ticker */}
+          <p className="text-[#FF3D00] text-xs font-bold uppercase tracking-[3px] mb-4">
+            Highlights Gaming
+          </p>
+          <div className="mb-16">
+            <MediaTicker />
+          </div>
+
+          {/* YouTube grid — hidden when no IDs configured */}
+          {YOUTUBE_IDS.some(id => id.length > 0) && (
+            <>
+              <p className="text-[#FF3D00] text-xs font-bold uppercase tracking-[3px] mb-4">
+                Últimos Highlights
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2 aspect-video rounded-xl overflow-hidden bg-[#141414]">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${YOUTUBE_IDS[0]}?autoplay=0&rel=0`}
+                    className="w-full h-full"
+                    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+                <div className="flex flex-col gap-4">
+                  {([YOUTUBE_IDS[1], YOUTUBE_IDS[2]] as string[])
+                    .filter(id => id.length > 0)
+                    .map((id, i) => (
+                      <div key={i} className="aspect-video rounded-xl overflow-hidden bg-[#141414]">
+                        <iframe
+                          src={`https://www.youtube.com/embed/${id}?autoplay=0&rel=0`}
+                          className="w-full h-full"
+                          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ────────────────────────────────────────────────── */}
+      <section className="py-20 px-4 bg-[#0a0a0a]">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-black text-white mb-4">¿Cómo Funciona?</h2>
@@ -158,12 +399,17 @@ export default async function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { n: '1', title: 'Crea tu cuenta', desc: 'Regístrate gratis en menos de un minuto. Sin tarjeta de crédito.' },
+              { n: '1', title: 'Crea tu cuenta',  desc: 'Regístrate gratis en menos de un minuto. Sin tarjeta de crédito.' },
               { n: '2', title: 'Elige tu torneo', desc: 'Explora los torneos disponibles y encuentra el que encaja con tu juego.' },
-              { n: '3', title: 'Compite y gana', desc: 'Sigue el bracket, coordina con rivales y lleva tu gaming al siguiente nivel.' },
+              { n: '3', title: 'Compite y gana',  desc: 'Sigue el bracket, coordina con rivales y lleva tu gaming al siguiente nivel.' },
             ].map(({ n, title, desc }) => (
               <div key={n} className="text-center">
-                <div className="w-14 h-14 rounded-full bg-av-gradient flex items-center justify-center font-black text-white text-xl mx-auto mb-4">{n}</div>
+                <div
+                  className="w-14 h-14 rounded-full bg-av-gradient flex items-center justify-center font-black text-white text-xl mx-auto mb-4"
+                  style={{ boxShadow: '0 0 20px rgba(255,61,0,0.35)' }}
+                >
+                  {n}
+                </div>
                 <h3 className="font-bold text-white text-lg mb-2">{title}</h3>
                 <p className="text-gray-400 text-sm leading-relaxed">{desc}</p>
               </div>
@@ -172,14 +418,84 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CTA FINAL */}
+      {/* ── DISCORD CTA ─────────────────────────────────────────────────── */}
+      <section
+        className="py-20 px-4"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,61,0,0.06) 0%, rgba(123,47,190,0.06) 100%)',
+        }}
+      >
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="text-6xl mb-6">💬</div>
+          <h2 className="text-4xl font-black text-white mb-4">Únete a la comunidad</h2>
+          <p className="text-gray-400 text-lg mb-2">
+            Más de{' '}
+            <span className="text-white font-bold">500 miembros</span>
+            {' '}· Partidas organizadas · Anuncios de torneos
+          </p>
+          <p className="text-gray-500 text-sm mb-8">
+            Coordina, comparte resultados y conoce jugadores de LATAM
+          </p>
+          <a
+            href="#"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-white transition-all hover:opacity-90"
+            style={{ background: '#5865F2', boxShadow: '0 0 20px rgba(88,101,242,0.4)' }}
+          >
+            Unirse al Discord →
+          </a>
+        </div>
+      </section>
+
+      {/* ── NOSOTROS ────────────────────────────────────────────────────── */}
+      <section id="nosotros" className="py-20 px-4 bg-[#0a0a0a]">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div>
+            <p className="text-[#FF3D00] text-xs font-bold uppercase tracking-[3px] mb-4">
+              Nuestra misión
+            </p>
+            <h2 className="text-4xl font-black text-white mb-6">
+              Impulsamos el esports en LATAM
+            </h2>
+            <p className="text-gray-400 leading-relaxed mb-4">
+              Arena Versus nació con un propósito claro: crear la primera plataforma de torneos
+              esports verdaderamente accesible para toda Latinoamérica.
+            </p>
+            <p className="text-gray-400 leading-relaxed mb-6">
+              Creemos que el talento no tiene fronteras. Cada jugador merece la oportunidad de
+              competir en un ambiente organizado, justo y emocionante — sin importar desde qué
+              país juegue.
+            </p>
+            <Link href="/register" className="inline-flex items-center gap-2 text-[#FF3D00] font-semibold hover:underline">
+              Únete gratis →
+            </Link>
+          </div>
+          <div className="relative rounded-2xl overflow-hidden h-[300px]">
+            <img
+              src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&q=80"
+              alt=""
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+            <div
+              className="absolute inset-0"
+              style={{ background: 'linear-gradient(135deg, rgba(255,61,0,0.25), rgba(0,0,0,0.4))' }}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ── FINAL CTA ───────────────────────────────────────────────────── */}
       <section className="py-20 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-5xl font-black text-white mb-6">
             ¿Listo para <span className="text-gradient">competir?</span>
           </h2>
           <p className="text-gray-400 text-lg mb-10">Sin costo. Sin excusas. Solo gaming de alto nivel.</p>
-          <Link href="/register" className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-av-gradient text-white font-bold text-lg hover:opacity-90 transition-opacity">
+          <Link
+            href="/register"
+            className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-av-gradient text-white font-bold text-lg hover:opacity-90 transition-opacity"
+            style={{ boxShadow: '0 0 30px rgba(255,61,0,0.4)' }}
+          >
             ⚡ Crear Mi Cuenta Gratis
           </Link>
           <p className="text-gray-500 text-sm mt-4">🔒 Sin tarjeta de crédito · Siempre gratis · LATAM Esports</p>
