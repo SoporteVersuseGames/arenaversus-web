@@ -114,13 +114,15 @@ export default function AdminPage() {
   async function handleToggleAdmin(targetId: string, currentIsAdmin: boolean) {
     setTogglingId(targetId)
     const supabase = createClient()
-    await supabase
+    const { error } = await supabase
       .from('profiles')
       .update({ is_admin: !currentIsAdmin })
       .eq('id', targetId)
-    setUsers(prev =>
-      prev.map(u => u.id === targetId ? { ...u, is_admin: !currentIsAdmin } : u)
-    )
+    if (!error) {
+      setUsers(prev =>
+        prev.map(u => u.id === targetId ? { ...u, is_admin: !currentIsAdmin } : u)
+      )
+    }
     setTogglingId(null)
   }
 
@@ -279,7 +281,7 @@ export default function AdminPage() {
                 )}
                 <button
                   disabled={locked || togglingId === u.id}
-                  onClick={() => !locked && handleToggleAdmin(u.id, u.is_admin)}
+                  onClick={() => handleToggleAdmin(u.id, u.is_admin)}
                   className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                     locked
                       ? 'border border-white/10 text-gray-600'
