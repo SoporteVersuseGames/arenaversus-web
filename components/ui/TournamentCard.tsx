@@ -3,12 +3,19 @@ import type { Tournament } from '@/lib/types'
 import StatusPill from './StatusPill'
 import GameIcon from './GameIcon'
 import { formatDate } from '@/utils/constants'
+import RegisterButton from './RegisterButton'
 
-interface TournamentCardProps { tournament: Tournament; showBracketLink?: boolean }
+interface TournamentCardProps {
+  tournament: Tournament
+  showBracketLink?: boolean
+  userId?: string | null
+  isRegistered?: boolean
+}
 
-export default function TournamentCard({ tournament, showBracketLink = false }: TournamentCardProps) {
+export default function TournamentCard({ tournament, showBracketLink = false, userId, isRegistered = false }: TournamentCardProps) {
   const spotsLeft = tournament.max_players - tournament.current_players
   const pct = Math.min((tournament.current_players / tournament.max_players) * 100, 100)
+  const isOpen = tournament.status === 'open'
 
   return (
     <div className="bg-[#1c1c1c] border border-white/7 rounded-xl p-5 hover:border-[#ea3935]/30 transition-all group">
@@ -29,11 +36,22 @@ export default function TournamentCard({ tournament, showBracketLink = false }: 
       <div className="w-full bg-white/10 rounded-full h-1 mb-4">
         <div className="bg-av-gradient h-1 rounded-full" style={{ width: `${pct}%` }} />
       </div>
-      {showBracketLink && (
-        <Link href={`/torneos/${tournament.id}`} className="block text-center py-2 rounded-lg border border-[#ea3935]/40 text-[#ea3935] text-sm font-medium hover:bg-[#ea3935]/10 transition-all">
-          Ver bracket →
-        </Link>
-      )}
+      <div className="space-y-2">
+        {isOpen && (
+          <RegisterButton
+            tournamentId={tournament.id}
+            userId={userId ?? null}
+            isRegistered={isRegistered}
+            isFull={spotsLeft <= 0}
+            currentPlayers={tournament.current_players}
+          />
+        )}
+        {showBracketLink && (
+          <Link href={`/torneos/${tournament.id}`} className="block text-center py-2 rounded-lg border border-[#ea3935]/40 text-[#ea3935] text-sm font-medium hover:bg-[#ea3935]/10 transition-all">
+            Ver torneo →
+          </Link>
+        )}
+      </div>
     </div>
   )
 }
