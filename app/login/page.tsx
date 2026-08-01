@@ -43,6 +43,11 @@ export default function LoginPage() {
             className="w-full py-3 rounded-lg bg-av-gradient text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50">
             {loading ? 'Iniciando...' : 'Iniciar sesión'}
           </button>
+          <div className="text-right">
+            <Link href="/forgot-password" className="text-[#FF3D00] text-xs hover:underline">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
         </form>
         <p className="text-center text-gray-400 text-sm mt-6">
           ¿No tienes cuenta?{' '}

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { IconLightning, IconLock } from '@/components/ui/Icons'
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -33,7 +34,7 @@ export default function RegisterPage() {
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-xl bg-av-gradient flex items-center justify-center font-black text-white text-lg mx-auto mb-4">AV</div>
           <h1 className="text-2xl font-bold text-white">Crear cuenta gratis</h1>
-          <p className="text-gray-400 text-sm mt-2">🔒 Sin tarjeta de crédito · Siempre gratis</p>
+          <p className="text-gray-400 text-sm mt-2 flex items-center justify-center gap-1.5"><IconLock size={13} />Sin tarjeta de crédito · Siempre gratis</p>
         </div>
         <form onSubmit={handleSubmit} className="bg-[#141414] border border-white/7 rounded-xl p-6 space-y-4">
           {error && <div className="bg-[#FF3D00]/10 border border-[#FF3D00]/30 rounded-lg p-3 text-[#FF3D00] text-sm">{error}</div>}
@@ -54,12 +55,18 @@ export default function RegisterPage() {
           </div>
           <button type="submit" disabled={loading}
             className="w-full py-3 rounded-lg bg-av-gradient text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50">
-            {loading ? 'Creando cuenta...' : '⚡ Crear Mi Cuenta Gratis'}
+            {loading ? 'Creando cuenta...' : <span className="flex items-center justify-center gap-2"><IconLightning size={15} />Crear Mi Cuenta Gratis</span>}
           </button>
         </form>
         <p className="text-center text-gray-400 text-sm mt-6">
           ¿Ya tienes cuenta?{' '}
           <Link href="/login" className="text-[#FF3D00] hover:underline">Inicia sesión</Link>
+        </p>
+        <p className="text-center text-gray-500 text-xs mt-3">
+          ¿Olvidaste tu contraseña?{' '}
+          <Link href="/forgot-password" className="text-[#FF3D00] hover:underline">
+            Recuperarla
+          </Link>
         </p>
       </div>
     </div>
